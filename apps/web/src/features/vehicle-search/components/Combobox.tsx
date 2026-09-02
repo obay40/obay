@@ -7,6 +7,8 @@ export interface ComboboxItem {
   slug: string;
   name: string;
   isPopular?: boolean;
+  /** Nicht mehr produziert, aber weiterhin gebraucht gehandelt (siehe historicLabel-Prop). */
+  isHistoric?: boolean;
   /** Alternative Schreibweisen ("VW", "1er", …) – werden mitdurchsucht, aber nie angezeigt. */
   aliases?: string[];
 }
@@ -33,6 +35,14 @@ interface ComboboxProps {
    * Modelle) bleibt es bei der einfachen Liste.
    */
   groupAlphabetically?: boolean;
+  /**
+   * Wenn gesetzt, werden Items mit isHistoric=true in einen dritten,
+   * separaten Abschnitt (statt in "allLabel") einsortiert, damit
+   * historische Modelle die aktuelle Auswahl nicht überfrachten (siehe
+   * Aufgabenstellung: "Historische Modelle visuell nicht dominieren
+   * lassen"). Ohne diese Prop bleibt es bei der bisherigen 2-Stufen-Logik.
+   */
+  historicLabel?: string;
 }
 
 function firstLetter(name: string): string {
@@ -64,6 +74,7 @@ export function Combobox({
   loading,
   className = "",
   groupAlphabetically = false,
+  historicLabel,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -78,6 +89,14 @@ export function Combobox({
     [items],
   );
   const popularItems = useMemo(() => sortedItems.filter((item) => item.isPopular), [sortedItems]);
+  const currentItems = useMemo(
+    () => sortedItems.filter((item) => !item.isPopular && !(historicLabel && item.isHistoric)),
+    [sortedItems, historicLabel],
+  );
+  const historicItems = useMemo(
+    () => (historicLabel ? sortedItems.filter((item) => !item.isPopular && item.isHistoric) : []),
+    [sortedItems, historicLabel],
+  );
 
   const filteredItems = useMemo(() => {
     if (!query.trim()) return sortedItems;
@@ -294,14 +313,27 @@ export function Combobox({
               </>
             )}
 
-            {alphabeticalGroups
-              ? alphabeticalGroups.map(([letter, groupItems]) => (
-                  <Fragment key={letter}>
-                    {renderSectionLabel(letter)}
-                    {groupItems.map(renderItem)}
-                  </Fragment>
-                ))
-              : visibleList.map(renderItem)}
+            {historicLabel && !query.trim() ? (
+              <>
+                {currentItems.map(renderItem)}
+                {historicItems.length > 0 && (
+                  <>
+                    <li className="border-navy-100 my-2 border-t" role="presentation" />
+                    {renderSectionLabel(historicLabel)}
+                    {historicItems.map(renderItem)}
+                  </>
+                )}
+              </>
+            ) : alphabeticalGroups ? (
+              alphabeticalGroups.map(([letter, groupItems]) => (
+                <Fragment key={letter}>
+                  {renderSectionLabel(letter)}
+                  {groupItems.map(renderItem)}
+                </Fragment>
+              ))
+            ) : (
+              visibleList.map(renderItem)
+            )}
           </ul>
         </div>
       )}

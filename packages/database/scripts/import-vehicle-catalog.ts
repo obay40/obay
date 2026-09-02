@@ -12,11 +12,22 @@
  * Sync-Prinzip: upsert je (source, sourceId). Datensätze, die im aktuellen
  * Import fehlen, werden NIE gelöscht, sondern auf sourceActive=false
  * gesetzt (siehe Prisma-Schema-Kommentar zu VehicleManufacturer).
+ *
+ * PKW-Kuratierung (siehe overrides.ts): jede Zeile bekommt zusätzlich eine
+ * `category`/`vehicleCategory` und einen abgeleiteten
+ * `isVisibleInPassengerCarSearch`-Wert. Die Rohdaten (RAW/SOURCE) bleiben
+ * dabei vollständig erhalten – kuratiert wird nur über zusätzliche Felder,
+ * nie über Löschung.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { PrismaClient, VehicleCatalogSource } from "../generated/client/index";
+import {
+  PrismaClient,
+  VehicleCatalogSource,
+  type VehicleCategory,
+  type VehicleCurationStatus,
+} from "../generated/client/index";
 import {
   manufacturerOverrides,
   modelOverrides,
@@ -24,9 +35,13 @@ import {
   manualModels,
 } from "../src/vehicle-catalog/overrides";
 import { normalizedSearchKey, slugify } from "../src/vehicle-catalog/normalize";
+import curationReview from "../src/vehicle-catalog/curation-review.json";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VENDOR_DIR = join(__dirname, "..", "vendor", "vehiclesdb");
+
+const PASSENGER_CAR: VehicleCategory = "PASSENGER_CAR";
+const MULTI_CATEGORY: VehicleCategory = "MULTI_CATEGORY";
 
 interface SourceMake {
   id: string;
@@ -46,6 +61,11 @@ interface SourceModel {
   body_types?: string[];
 }
 
+interface ManufacturerImportResult {
+  id: string;
+  category: VehicleCategory;
+}
+
 const prisma = new PrismaClient();
 
 const stats = {
@@ -53,10 +73,14 @@ const stats = {
   manufacturersUpdated: 0,
   manufacturersUnchanged: 0,
   manufacturersDeactivated: 0,
+  manufacturersByCategory: {} as Record<string, number>,
   modelsCreated: 0,
   modelsUpdated: 0,
   modelsUnchanged: 0,
   modelsDeactivated: 0,
+  modelsByCategory: {} as Record<string, number>,
+  modelsHistoric: 0,
+  modelsExcludedFromPassengerCarSearch: 0,
   warnings: [] as string[],
   errors: [] as string[],
 };
@@ -84,6 +108,10 @@ function mergeAliases(...lists: (string[] | undefined)[]): string[] {
   return [...seen];
 }
 
+function countCategory(bucket: Record<string, number>, category: string) {
+  bucket[category] = (bucket[category] ?? 0) + 1;
+}
+
 async function syncManufacturerAliases(manufacturerId: string, aliases: string[]) {
   for (const alias of aliases) {
     await prisma.vehicleManufacturerAlias.upsert({
@@ -106,12 +134,13 @@ async function syncModelAliases(modelId: string, aliases: string[]) {
 
 async function importManufacturers(sourceMakes: SourceMake[], sourceVersion: string) {
   const overridesById = new Map(manufacturerOverrides.map((o) => [o.sourceId, o]));
-  const manufacturerIdBySourceId = new Map<string, string>();
+  const manufacturerIdBySourceId = new Map<string, ManufacturerImportResult>();
 
   for (const make of sourceMakes) {
     const override = overridesById.get(make.id);
     const isPopular = override?.isPopular ?? false;
     const isActive = !(override?.hidden ?? false);
+    const category = override?.category ?? PASSENGER_CAR;
     const displayName = override?.displayName;
     const slug = slugify(make.name);
 
@@ -125,6 +154,7 @@ async function importManufacturers(sourceMakes: SourceMake[], sourceVersion: str
       displayName: displayName ?? null,
       isActive,
       isPopular,
+      category,
       source: VehicleCatalogSource.VEHICLES_DB,
       sourceId: make.id,
       sourceVersion,
@@ -137,7 +167,8 @@ async function importManufacturers(sourceMakes: SourceMake[], sourceVersion: str
       create: data,
     });
 
-    manufacturerIdBySourceId.set(make.id, manufacturer.id);
+    manufacturerIdBySourceId.set(make.id, { id: manufacturer.id, category });
+    countCategory(stats.manufacturersByCategory, category);
 
     const aliases = mergeAliases(make.aliases, override?.aliases);
     await syncManufacturerAliases(manufacturer.id, aliases);
@@ -166,7 +197,10 @@ async function importManufacturers(sourceMakes: SourceMake[], sourceVersion: str
         source: VehicleCatalogSource.MANUAL,
       },
     });
-    manufacturerIdBySourceId.set(`manual:${manual.slug}`, manufacturer.id);
+    manufacturerIdBySourceId.set(`manual:${manual.slug}`, {
+      id: manufacturer.id,
+      category: PASSENGER_CAR,
+    });
     await syncManufacturerAliases(manufacturer.id, manual.aliases ?? []);
   }
 
@@ -187,33 +221,55 @@ async function importManufacturers(sourceMakes: SourceMake[], sourceVersion: str
 }
 
 function hasManufacturerChanged(
-  existing: { name: string; displayName: string | null; isActive: boolean; isPopular: boolean },
-  next: { name: string; displayName: string | null; isActive: boolean; isPopular: boolean },
+  existing: { name: string; displayName: string | null; isActive: boolean; isPopular: boolean; category: string },
+  next: { name: string; displayName: string | null; isActive: boolean; isPopular: boolean; category: string },
 ): boolean {
   return (
     existing.name !== next.name ||
     existing.displayName !== next.displayName ||
     existing.isActive !== next.isActive ||
-    existing.isPopular !== next.isPopular
+    existing.isPopular !== next.isPopular ||
+    existing.category !== next.category
   );
+}
+
+/** Sichtbar in der normalen PKW-Suche nur, wenn Hersteller UND Modell PASSENGER_CAR sind (oder Hersteller MULTI_CATEGORY + Modell PASSENGER_CAR) und kein expliziter Ausschluss-Override greift. */
+function computeVisibility(
+  manufacturerCategory: VehicleCategory,
+  modelCategory: VehicleCategory,
+  excludeOverride: boolean,
+): boolean {
+  if (manufacturerCategory !== PASSENGER_CAR && manufacturerCategory !== MULTI_CATEGORY) return false;
+  if (modelCategory !== PASSENGER_CAR) return false;
+  if (excludeOverride) return false;
+  return true;
+}
+
+function computeCurationStatus(
+  explicitStatus: VehicleCurationStatus | undefined,
+  isVisible: boolean,
+): VehicleCurationStatus {
+  if (explicitStatus) return explicitStatus;
+  return isVisible ? "AUTO_APPROVED" : "MANUAL_EXCLUDED";
 }
 
 async function importModels(
   sourceModels: SourceModel[],
-  manufacturerIdBySourceId: Map<string, string>,
+  manufacturerIdBySourceId: Map<string, ManufacturerImportResult>,
   sourceVersion: string,
 ) {
   const overridesById = new Map(modelOverrides.map((o) => [o.sourceId, o]));
   const seenSlugsPerManufacturer = new Map<string, Set<string>>();
 
   for (const model of sourceModels) {
-    const manufacturerId = manufacturerIdBySourceId.get(model.make_id);
-    if (!manufacturerId) {
+    const manufacturerEntry = manufacturerIdBySourceId.get(model.make_id);
+    if (!manufacturerEntry) {
       stats.warnings.push(
         `Modell "${model.id}" übersprungen: Hersteller "${model.make_id}" nicht im Katalog gefunden.`,
       );
       continue;
     }
+    const manufacturerId = manufacturerEntry.id;
 
     const override = overridesById.get(model.id);
     const slug = model.slug;
@@ -231,6 +287,14 @@ async function importModels(
 
     const isActive = !(override?.hidden ?? false);
     const displayName = override?.displayName;
+    const vehicleCategory = override?.vehicleCategory ?? PASSENGER_CAR;
+    const isVisibleInPassengerCarSearch = computeVisibility(
+      manufacturerEntry.category,
+      vehicleCategory,
+      override?.excludeFromPassengerCarSearch ?? false,
+    );
+    const isHistoric = override?.isHistoric ?? false;
+    const curationStatus = computeCurationStatus(override?.curationStatus, isVisibleInPassengerCarSearch);
 
     const existing = await prisma.vehicleModel.findUnique({
       where: { source_sourceId: { source: VehicleCatalogSource.VEHICLES_DB, sourceId: model.id } },
@@ -243,7 +307,11 @@ async function importModels(
       displayName: displayName ?? null,
       isActive,
       isPopular: override?.isPopular ?? false,
+      isHistoric,
       bodyTypes: model.body_types ?? [],
+      vehicleCategory,
+      isVisibleInPassengerCarSearch,
+      curationStatus,
       source: VehicleCatalogSource.VEHICLES_DB,
       sourceId: model.id,
       sourceVersion,
@@ -259,6 +327,10 @@ async function importModels(
 
       const aliases = mergeAliases(model.aliases, override?.aliases);
       await syncModelAliases(saved.id, aliases);
+
+      countCategory(stats.modelsByCategory, vehicleCategory);
+      if (isHistoric) stats.modelsHistoric += 1;
+      if (!isVisibleInPassengerCarSearch) stats.modelsExcludedFromPassengerCarSearch += 1;
 
       if (!existing) stats.modelsCreated += 1;
       else if (hasModelChanged(existing, data)) stats.modelsUpdated += 1;
@@ -315,14 +387,36 @@ async function importModels(
 }
 
 function hasModelChanged(
-  existing: { name: string; displayName: string | null; isActive: boolean; isPopular: boolean },
-  next: { name: string; displayName: string | null; isActive: boolean; isPopular: boolean },
+  existing: {
+    name: string;
+    displayName: string | null;
+    isActive: boolean;
+    isPopular: boolean;
+    isHistoric: boolean;
+    vehicleCategory: string;
+    isVisibleInPassengerCarSearch: boolean;
+    curationStatus: string;
+  },
+  next: {
+    name: string;
+    displayName: string | null;
+    isActive: boolean;
+    isPopular: boolean;
+    isHistoric: boolean;
+    vehicleCategory: string;
+    isVisibleInPassengerCarSearch: boolean;
+    curationStatus: string;
+  },
 ): boolean {
   return (
     existing.name !== next.name ||
     existing.displayName !== next.displayName ||
     existing.isActive !== next.isActive ||
-    existing.isPopular !== next.isPopular
+    existing.isPopular !== next.isPopular ||
+    existing.isHistoric !== next.isHistoric ||
+    existing.vehicleCategory !== next.vehicleCategory ||
+    existing.isVisibleInPassengerCarSearch !== next.isVisibleInPassengerCarSearch ||
+    existing.curationStatus !== next.curationStatus
   );
 }
 
@@ -338,6 +432,9 @@ async function main() {
   const manufacturerIdBySourceId = await importManufacturers(sourceMakes, sourceVersion);
   await importModels(sourceModels, manufacturerIdBySourceId, sourceVersion);
 
+  const passengerCarManufacturers = stats.manufacturersByCategory[PASSENGER_CAR] ?? 0;
+  const passengerCarModels = stats.modelsByCategory[PASSENGER_CAR] ?? 0;
+
   console.log("Vehicle catalog import completed\n");
   console.log(`Source version: ${sourceVersion}\n`);
   console.log(
@@ -352,6 +449,16 @@ async function main() {
       `Models unchanged: ${stats.modelsUnchanged}\n` +
       `Models deactivated (removed upstream): ${stats.modelsDeactivated}\n`,
   );
+  console.log("--- PKW-Kuratierung ---");
+  console.log(`RAW manufacturers: ${sourceMakes.length} | RAW models: ${sourceModels.length}`);
+  console.log(
+    `PASSENGER_CAR manufacturers: ${passengerCarManufacturers} | PASSENGER_CAR models: ${passengerCarModels}`,
+  );
+  console.log("Manufacturers by category:", stats.manufacturersByCategory);
+  console.log("Models by category:", stats.modelsByCategory);
+  console.log(`Models marked historic: ${stats.modelsHistoric}`);
+  console.log(`Models excluded from passenger car search: ${stats.modelsExcludedFromPassengerCarSearch}`);
+  console.log(`Curation review entries (unresolved grey areas): ${curationReview.length}\n`);
   console.log(`Warnings: ${stats.warnings.length}`);
   for (const warning of stats.warnings) console.log(`  - ${warning}`);
   console.log(`Errors: ${stats.errors.length}`);

@@ -151,18 +151,25 @@ sondern bleiben bis zu einer verifizierten Quelle bewusst offen:
   vertreten.
 - **NIO EL7** – die Quelle führt NIO `EL6`/`EL8`/`ET5`/`ET7`, aber (noch)
   kein `EL7` in den abgedeckten Märkten.
+- **Volkswagen Multivan** – fehlt vollständig in der Quelle, auch unter
+  `kind: van` (geprüft) – nicht falsch klassifiziert, schlicht nicht
+  katalogisiert.
 
-Diese drei Fahrzeuge sind in Autoklick24 aktuell nur über den Freitext-
+Diese vier Fahrzeuge sind in Autoklick24 aktuell nur über den Freitext-
 Fallback „Sonstige Marke"/„Sonstiges Modell" erfassbar. Eine spätere manuelle
 Ergänzung (`source: MANUAL`) ist über das Datenmodell vorbereitet, aber
 bewusst nicht ungeprüft vorgenommen worden.
 
 **Nicht importiert (bewusst, siehe Aufgabenstellung):** Transporter/Vans
-(`kind: van`, u. a. VW Caddy/Transporter/Multivan, Mercedes Vito/Sprinter,
+(`kind: van`, u. a. VW Caddy/Transporter, Mercedes Vito/Sprinter,
 Renault Kangoo/Trafic, Citroën Berlingo/Jumpy, Fiat Ducato) – diese sind in
 der Quelle korrekt als eigener `kind` von PKW getrennt und werden in einem
 späteren Schritt eigenständig importiert, sobald Autoklick24 diese Fahrzeug-
 klasse anbietet. Ebenso nicht importiert: Motorräder, Mopeds, Busse, LKW.
+
+**PKW-Kuratierung (Wohnmobile, Sonderfahrzeuge, Marken-Fehlzuordnungen,
+interne Typcodes innerhalb der importierten `car`-Daten):** siehe eigenes
+Dokument [`vehicle-catalog-curation.md`](./vehicle-catalog-curation.md).
 
 ## Reproduzierbarkeit
 

@@ -49,6 +49,7 @@ export async function GET(
     slug: model.slug,
     name: resolveDisplayName(model),
     isPopular: model.isPopular,
+    isHistoric: model.isHistoric,
     bodyTypes: model.bodyTypes,
     aliases: model.aliases,
   }));

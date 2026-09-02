@@ -7,9 +7,20 @@
  * isActive filtert nach "in Autoklick24 nutzbar" (NICHT nach
  * Produktionsstatus) und sourceActive schließt Datensätze aus, die beim
  * letzten Import nicht mehr in der Quelle gefunden wurden.
+ *
+ * PKW-Kuratierung: die Funktionen hier liefern per Default NUR den
+ * kuratierten PKW-Katalog (Hersteller category=PASSENGER_CAR/MULTI_CATEGORY,
+ * Modell isVisibleInPassengerCarSearch=true) – siehe
+ * packages/database/src/vehicle-catalog/overrides.ts und
+ * docs/vehicle-catalog-curation.md. Die vollständigen Rohdaten bleiben in
+ * der Datenbank erhalten (nichts wird gelöscht) und sind über die
+ * `category`/`vehicleCategory`-Spalten weiterhin abfragbar, z. B. für einen
+ * künftigen Admin-/Debug-Zugriff.
  */
 import { prisma } from "../client";
 import { naturalCompare, normalizedSearchKey } from "./normalize";
+
+const PASSENGER_CAR_MANUFACTURER_CATEGORIES = ["PASSENGER_CAR", "MULTI_CATEGORY"] as const;
 
 export interface VehicleManufacturerRecord {
   id: string;
@@ -26,6 +37,7 @@ export interface VehicleModelRecord {
   name: string;
   displayName: string | null;
   isPopular: boolean;
+  isHistoric: boolean;
   bodyTypes: string[];
   aliases: string[];
 }
@@ -50,6 +62,7 @@ const MODEL_SELECT = {
   name: true,
   displayName: true,
   isPopular: true,
+  isHistoric: true,
   bodyTypes: true,
   aliases: { select: { alias: true } },
 } as const;
@@ -66,7 +79,11 @@ function sortByDisplayName<T extends { name: string; displayName: string | null 
 
 export async function listActiveManufacturers(): Promise<VehicleManufacturerRecord[]> {
   const rows = await prisma.vehicleManufacturer.findMany({
-    where: { isActive: true, sourceActive: true },
+    where: {
+      isActive: true,
+      sourceActive: true,
+      category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+    },
     select: MANUFACTURER_SELECT,
   });
   return sortByDisplayName(rows.map(flattenAliases));
@@ -76,7 +93,12 @@ export async function findManufacturerBySlug(
   slug: string,
 ): Promise<VehicleManufacturerRecord | null> {
   const row = await prisma.vehicleManufacturer.findFirst({
-    where: { slug, isActive: true, sourceActive: true },
+    where: {
+      slug,
+      isActive: true,
+      sourceActive: true,
+      category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+    },
     select: MANUFACTURER_SELECT,
   });
   return row ? flattenAliases(row) : null;
@@ -89,7 +111,13 @@ export async function listActiveModelsForManufacturerSlug(
     where: {
       isActive: true,
       sourceActive: true,
-      manufacturer: { slug: manufacturerSlug, isActive: true, sourceActive: true },
+      isVisibleInPassengerCarSearch: true,
+      manufacturer: {
+        slug: manufacturerSlug,
+        isActive: true,
+        sourceActive: true,
+        category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+      },
     },
     select: MODEL_SELECT,
   });
@@ -105,7 +133,13 @@ export async function findModelBySlug(
       slug: modelSlug,
       isActive: true,
       sourceActive: true,
-      manufacturer: { slug: manufacturerSlug, isActive: true, sourceActive: true },
+      isVisibleInPassengerCarSearch: true,
+      manufacturer: {
+        slug: manufacturerSlug,
+        isActive: true,
+        sourceActive: true,
+        category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+      },
     },
     select: MODEL_SELECT,
   });
@@ -117,6 +151,7 @@ export async function findModelBySlug(
  * Namen – z. B. "VW" → Volkswagen, "Mercedes" → Mercedes-Benz, "Skoda" →
  * Škoda. Beweist, dass das Alias-System (siehe docs/vehicle-data-sources.md)
  * tatsächlich funktioniert, nicht nur architektonisch vorgesehen ist.
+ * Sucht nur innerhalb des kuratierten PKW-Katalogs (siehe Modulkommentar).
  */
 export async function resolveManufacturerByTerm(
   term: string,
@@ -125,6 +160,7 @@ export async function resolveManufacturerByTerm(
     where: {
       isActive: true,
       sourceActive: true,
+      category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
       OR: [{ slug: term }, { aliases: { some: { normalizedAlias: normalizedSearchKey(term) } } }],
     },
     select: MANUFACTURER_SELECT,
@@ -145,7 +181,13 @@ export async function resolveModelByTerm(
     where: {
       isActive: true,
       sourceActive: true,
-      manufacturer: { slug: manufacturerSlug, isActive: true, sourceActive: true },
+      isVisibleInPassengerCarSearch: true,
+      manufacturer: {
+        slug: manufacturerSlug,
+        isActive: true,
+        sourceActive: true,
+        category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+      },
       OR: [{ slug: term }, { aliases: { some: { normalizedAlias: normalizedSearchKey(term) } } }],
     },
     select: MODEL_SELECT,

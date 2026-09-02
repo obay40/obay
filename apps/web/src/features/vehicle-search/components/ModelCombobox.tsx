@@ -24,6 +24,7 @@ export function ModelCombobox({ makeSlug, value, onChange, className }: ModelCom
       searchPlaceholder="Modell suchen"
       popularLabel="Beliebt"
       allLabel="Alle Modelle"
+      historicLabel="Weitere / historische Modelle"
       emptyStateText="Keine Modelle gefunden"
       disabled={!makeSlug}
       disabledHint="Zuerst Marke wählen"

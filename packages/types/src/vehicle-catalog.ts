@@ -24,6 +24,8 @@ export interface VehicleModelDto {
   slug: string;
   name: string;
   isPopular: boolean;
+  /** Nicht mehr produziert, aber weiterhin gebraucht gehandelt – eigener UI-Abschnitt statt Löschung. */
+  isHistoric: boolean;
   bodyTypes: string[];
   /** Alternative Schreibweisen (z. B. "1er" für "1 Series"), siehe VehicleManufacturerDto.aliases. */
   aliases: string[];
