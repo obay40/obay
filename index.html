@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Autoklick24 – Auto verkaufen. Klick. Fertig.</title>
 <meta name="description" content="Autoklick24: Fahrzeug direkt verkaufen, vermitteln lassen oder selbst inserieren. Ein Fahrzeug, drei Verkaufswege.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImFrYyIgeDE9IjAlIiB5MT0iMTAwJSIgeDI9IjEwMCUiIHkyPSIwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzVDRDNFOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFFNTZCOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iMjIiIGZpbGw9IiMwQTE2MjYiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMiA0NCBRMjIgMzAgMzQgMzAgSDY2IFE3OCAzMCA3OCA0NCBWNjAgUTc4IDY2IDcyIDY2IEgyOCBRMjIgNjYgMjIgNjAgWiIvPjxwYXRoIGQ9Ik0zMCAzOCBINzAiIHN0cm9rZS13aWR0aD0iMi41IiBvcGFjaXR5PSIuNyIvPjxyZWN0IHg9IjI2IiB5PSI0NSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjkiIHJ4PSIzIi8+PHJlY3QgeD0iNjAiIHk9IjQ1IiB3aWR0aD0iMTQiIGhlaWdodD0iOSIgcng9IjMiLz48cGF0aCBkPSJNNDQgNTIgSDU2IiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNNDMgNTggSDU3IiBzdHJva2Utd2lkdGg9IjMiLz48L2c+PGcgc3Ryb2tlPSIjMkZBRTdBIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTE2IDYyIEwyMyA2MCIvPjxwYXRoIGQ9Ik0xOCA3MCBMMjUgNjYuNSIvPjxwYXRoIGQ9Ik0yMyA3NyBMMjggNzIiLz48L2c+PHBhdGggZD0iTTMzIDU1IEwzMyA4MiBMNDAuNSA3NS41IEw0NS41IDg2IEw1MS41IDgzIEw0Ni41IDcyLjUgTDU2IDcyLjUgWiIgZmlsbD0idXJsKCNha2MpIiBzdHJva2U9IiMwQTE2MjYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -69,8 +70,10 @@
     border-bottom:1px solid var(--border);
   }
   .header-row{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-  .logo{font-family:var(--font-display);font-weight:800;font-size:1.25rem;letter-spacing:-.02em;display:flex;align-items:center;}
+  .logo{font-family:var(--font-display);font-weight:800;font-size:1.25rem;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;}
+  .logo-mark{width:28px;height:28px;flex-shrink:0;}
   .logo b{font-weight:800;color:var(--navy-900);}
+  .logo i{font-style:normal;font-weight:800;color:var(--cyan-400);}
   .logo span{color:var(--brand-500);}
   nav.primary{display:none;align-items:center;gap:28px;}
   nav.primary a{font-size:.9rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;}
@@ -273,9 +276,10 @@
   .footer-grid a{font-size:.84rem;color:#93A4BE;}
   .footer-grid a:hover{color:var(--cyan-300);}
   .footer-bottom{margin-top:44px;padding:22px 0 26px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
-  .footer-logo{font-family:var(--font-display);font-weight:800;font-size:1.05rem;}
+  .footer-logo{font-family:var(--font-display);font-weight:800;font-size:1.05rem;display:inline-flex;align-items:center;gap:8px;}
   .footer-logo b{color:#fff;}
-  .footer-logo span{color:var(--cyan-400);}
+  .footer-logo i{font-style:normal;font-weight:800;color:var(--cyan-400);}
+  .footer-logo span{color:var(--brand-400,#4F91F5);}
   .footer-bottom p{font-size:.76rem;color:#6F80998a; color:#7C8CA5;max-width:520px;}
 
   [hidden]{display:none!important;}
@@ -295,7 +299,7 @@
 
 <header class="site">
   <div class="wrap header-row">
-    <a href="#/" class="logo"><b>Autoklick</b><span>24</span></a>
+    <a href="#/" class="logo"><svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="akc" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#5CD3E8"/><stop offset="100%" stop-color="#1E56B8"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="#0A1626"/><g fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 44 Q22 30 34 30 H66 Q78 30 78 44 V60 Q78 66 72 66 H28 Q22 66 22 60 Z"/><path d="M30 38 H70" stroke-width="2.5" opacity=".7"/><rect x="26" y="45" width="14" height="9" rx="3"/><rect x="60" y="45" width="14" height="9" rx="3"/><path d="M44 52 H56" stroke-width="3"/><path d="M43 58 H57" stroke-width="3"/></g><g stroke="#2FAE7A" stroke-width="3" stroke-linecap="round"><path d="M16 62 L23 60"/><path d="M18 70 L25 66.5"/><path d="M23 77 L28 72"/></g><path d="M33 55 L33 82 L40.5 75.5 L45.5 86 L51.5 83 L46.5 72.5 L56 72.5 Z" fill="url(#akc)" stroke="#0A1626" stroke-width="1.5" stroke-linejoin="round"/></svg><b>Auto</b><i>klick</i><span>24</span></a>
 
     <nav class="primary" id="primary-nav">
       <a href="#/autos" data-route="/autos">Autos kaufen</a>
@@ -380,7 +384,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-logo"><b>Autoklick</b><span>24</span></span>
+      <span class="footer-logo"><svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="akc" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#5CD3E8"/><stop offset="100%" stop-color="#1E56B8"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="#0A1626"/><g fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 44 Q22 30 34 30 H66 Q78 30 78 44 V60 Q78 66 72 66 H28 Q22 66 22 60 Z"/><path d="M30 38 H70" stroke-width="2.5" opacity=".7"/><rect x="26" y="45" width="14" height="9" rx="3"/><rect x="60" y="45" width="14" height="9" rx="3"/><path d="M44 52 H56" stroke-width="3"/><path d="M43 58 H57" stroke-width="3"/></g><g stroke="#2FAE7A" stroke-width="3" stroke-linecap="round"><path d="M16 62 L23 60"/><path d="M18 70 L25 66.5"/><path d="M23 77 L28 72"/></g><path d="M33 55 L33 82 L40.5 75.5 L45.5 86 L51.5 83 L46.5 72.5 L56 72.5 Z" fill="url(#akc)" stroke="#0A1626" stroke-width="1.5" stroke-linejoin="round"/></svg><b>Auto</b><i>klick</i><span>24</span></span>
       <p>© 2026 Autoklick24 · Anfragen werden aktuell manuell per WhatsApp/E-Mail bearbeitet, der automatisierte Marktplatz folgt schrittweise · Rechtstexte sind Platzhalter und juristisch zu prüfen.</p>
     </div>
   </div>
