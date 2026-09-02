@@ -11,8 +11,8 @@ export function SiteHeader() {
 
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between gap-4">
-        <Logo />
+      <Container className="flex h-20 items-center justify-between gap-4">
+        <Logo size="lg" />
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Hauptnavigation">
           {primaryNavLinks.map((link) => (
