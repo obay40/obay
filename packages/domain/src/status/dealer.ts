@@ -1,0 +1,9 @@
+import { DealerStatus } from "@autoklick24/types";
+import { createStatusMachine } from "./statusMachine";
+
+export const dealerStatusMachine = createStatusMachine<DealerStatus>("DealerStatus", {
+  PENDING: [DealerStatus.VERIFIED, DealerStatus.REJECTED],
+  VERIFIED: [DealerStatus.SUSPENDED],
+  REJECTED: [DealerStatus.PENDING],
+  SUSPENDED: [DealerStatus.VERIFIED, DealerStatus.REJECTED],
+});

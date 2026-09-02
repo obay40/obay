@@ -1,0 +1,172 @@
+// Autoklick24 – Prisma Schema (Phase 1: Fundament)
+//
+// Phase 1 enthält bewusst nur User/Profile/Address/Dealer/DealerEmployee.
+// Die weiteren Modelle aus der Architektur (Vehicle, Listing, PurchaseRequest,
+// MediationRequest, Conversation, Lead, ...) folgen in den jeweiligen Phasen
+// (siehe docs/ARCHITECTURE.md), um nicht "alles auf einmal" zu bauen.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Rollen & Benutzer
+// ---------------------------------------------------------------------------
+
+enum Role {
+  CUSTOMER
+  DEALER
+  DEALER_EMPLOYEE
+  STAFF
+  ADMIN
+  SUPER_ADMIN
+
+  // GUEST wird bewusst NICHT als DB-Wert geführt: ein nicht eingeloggter
+  // Besucher hat keinen User-Datensatz. GUEST existiert nur als Rollenwert
+  // in packages/types für Berechtigungsprüfungen im Code.
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  isActive     Boolean  @default(true)
+  emailVerifiedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile          Profile?
+  addresses        Address[]
+  dealerEmployment DealerEmployee?
+  ownedDealer      Dealer?         @relation("DealerOwner")
+
+  @@index([role])
+  @@map("users")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  phone     String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+enum AddressType {
+  PRIVATE
+  BUSINESS
+  PICKUP
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       AddressType @default(PRIVATE)
+  street     String
+  houseNumber String
+  postalCode String
+  city       String
+  country    String      @default("DE")
+  isDefault  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  dealers Dealer[]
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ---------------------------------------------------------------------------
+// Händler
+// ---------------------------------------------------------------------------
+
+enum DealerStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+model Dealer {
+  id           String       @id @default(cuid())
+  ownerUserId  String       @unique
+  owner        User         @relation("DealerOwner", fields: [ownerUserId], references: [id])
+  companyName  String
+  legalForm    String?
+  contactEmail String
+  contactPhone String
+  website      String?
+  vatId        String?
+  description  String?
+  logoUrl      String?
+  status       DealerStatus @default(PENDING)
+  verifiedAt   DateTime?
+
+  addressId String?
+  address   Address? @relation(fields: [addressId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees DealerEmployee[]
+
+  @@index([status])
+  @@map("dealers")
+}
+
+enum DealerEmployeeRole {
+  OWNER
+  MANAGER
+  SALES
+  EMPLOYEE
+}
+
+model DealerEmployee {
+  id       String             @id @default(cuid())
+  dealerId String
+  dealer   Dealer             @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  userId   String             @unique
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     DealerEmployeeRole @default(EMPLOYEE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealerId])
+  @@map("dealer_employees")
+}
+
+// ---------------------------------------------------------------------------
+// Audit Log (Grundlage – Details werden ab dem Admin-Bereich, Phase 8, aktiv genutzt)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}

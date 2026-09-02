@@ -1,0 +1,29 @@
+{
+  "name": "autoklick24",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Autoklick24 – Fahrzeugplattform (Direktankauf, Vermittlung, Marktplatz, Händlerbörse)",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @autoklick24/database generate",
+    "db:migrate": "pnpm --filter @autoklick24/database migrate",
+    "db:seed": "pnpm --filter @autoklick24/database seed",
+    "db:studio": "pnpm --filter @autoklick24/database studio"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  }
+}
