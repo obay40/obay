@@ -69,9 +69,9 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  .header-row{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-  .logo{font-family:var(--font-display);font-weight:800;font-size:1.25rem;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;}
-  .logo-mark{width:28px;height:28px;flex-shrink:0;}
+  .header-row{height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .logo{font-family:var(--font-display);font-weight:800;font-size:1.6rem;letter-spacing:-.02em;display:flex;align-items:center;gap:11px;}
+  .logo-mark{width:40px;height:40px;flex-shrink:0;}
   .logo b{font-weight:800;color:var(--navy-900);}
   .logo i{font-style:normal;font-weight:800;color:var(--cyan-400);}
   .logo span{color:var(--brand-500);}
@@ -276,7 +276,7 @@
   .footer-grid a{font-size:.84rem;color:#93A4BE;}
   .footer-grid a:hover{color:var(--cyan-300);}
   .footer-bottom{margin-top:44px;padding:22px 0 26px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
-  .footer-logo{font-family:var(--font-display);font-weight:800;font-size:1.05rem;display:inline-flex;align-items:center;gap:8px;}
+  .footer-logo{font-family:var(--font-display);font-weight:800;font-size:1.3rem;display:inline-flex;align-items:center;gap:10px;}
   .footer-logo b{color:#fff;}
   .footer-logo i{font-style:normal;font-weight:800;color:var(--cyan-400);}
   .footer-logo span{color:var(--brand-400,#4F91F5);}
@@ -415,11 +415,16 @@
   // Modell haengt von der Marke ab - derselbe Katalog(-Gedanke) wie in der
   // React-App (packages/types/vehicle-search.ts), hier als flaches Objekt
   // fuer die abhaengigkeitsfreie statische Seite.
-  // Kuratierter Autoklick24-PKW-Katalog (148 Marken, 1.997 Modelle), aus dem
+  // Kuratierter Autoklick24-PKW-Katalog (148 Marken, 2.390 Modelle), aus dem
   // mobile.de-Import (Gebrauchtwagen-Sitemap + Car-Changelog, Stand
   // 2026-09-02) gefiltert auf reine Personenkraftwagen - dieselbe kuratierte
   // Sicht wie in der Next.js-App (packages/database/vehicle-catalog,
   // category=PASSENGER_CAR/MULTI_CATEGORY, isVisibleInPassengerCarSearch=true).
+  // BMW und Mercedes-Benz sind hier zusaetzlich in Modellgruppen/Baureihen
+  // unterteilt ({groups:[{name,models}], models: [gruppenlose Modelle]} statt
+  // eines flachen Arrays) - siehe onMarkeChange() unten, das daraus
+  // <optgroup>-Abschnitte im Modell-Dropdown baut, analog zur echten
+  // Marke-Baureihe-Modell-Kaskade der Next.js-App.
   // Nutzfahrzeugmarken (Barkas, Piaggio, MAN, Iveco), Dubletten (Bovensiepen)
   // und unspezifische Sammelwerte sind bereits herausgefiltert, siehe
   // docs/vehicle-data-sources.md im Repository.
@@ -440,7 +445,7 @@
     "BAIC": ["Beijing X35","Beijing X55","Beijing X75","BJ20","BJ30","BJ40","BJ60","Senova D20","Senova X25","Senova X35","Senova X55","Senova X65","X55"],
     "BAW": ["212"],
     "Bentley": ["Arnage","Azure","Bentayga","Brooklands","Continental","Continental Flying Spur","Continental GT","Continental GTC","Continental Supersports","Eight","Flying Spur","Mulsanne","S2","Turbo R","Turbo RT","Turbo S"],
-    "BMW": ["1er","2er","3er","4er","5er","6er","7er","8er","i3","i4","i5","i7","i8","iX","iX1","iX2","iX3","M2","M3","M4","M5","M6","M8","X1","X2","X3","X4","X5","X6","X7","XM","Z1","Z3","Z4","Z8"],
+    "BMW": { groups: [{ name: "1er Reihe (alle)", models: ["1er M Coupé","114","116","118","120","123","125","128","130","135"] }, { name: "2er Reihe (alle)", models: ["2er Gran Coupé","214 Active Tourer","214 Gran Tourer","216","216 Active Tourer","216 Gran Coupé","216 Gran Tourer","218","218 Active Tourer","218 Gran Coupé","218 Gran Tourer","220","220 Active Tourer","220 Gran Coupé","220 Gran Tourer","223","223 Active Tourer","223 Gran Coupé","225","225 Active Tourer","228","230","230 Active Tourer","2002"] }, { name: "3er Reihe (alle)", models: ["315","316","318","318 Gran Turismo","320","320 Gran Turismo","323","324","325","325 Gran Turismo","328","328 Gran Turismo","330","330 Gran Turismo","335","335 Gran Turismo","340","340 Gran Turismo"] }, { name: "4er Reihe (alle)", models: ["418","418 Gran Coupé","420","420 Gran Coupé","425","425 Gran Coupé","428","428 Gran Coupé","430","430 Gran Coupé","435","435 Gran Coupé","440","440 Gran Coupé"] }, { name: "5er Reihe (alle)", models: ["518","520","520 Gran Turismo","523","524","525","528","530","530 Gran Turismo","535","535 Gran Turismo","540","545","550","550 Gran Turismo"] }, { name: "6er Reihe (alle)", models: ["620 Gran Turismo","628","630","630 Gran Turismo","633","635","640","640 Gran Coupé","640 Gran Turismo","645","650","650 Gran Coupé"] }, { name: "7er Reihe (alle)", models: ["725","728","730","732","735","740","745","750","760"] }, { name: "8er Reihe (alle)", models: ["840","850"] }, { name: "BMW i (alle)", models: ["i3","i4","i5","i7","i8","iX","iX1","iX2","iX3"] }, { name: "Hybrid-Sondermodelle", models: ["ActiveHybrid 3","ActiveHybrid 5","ActiveHybrid 7","ActiveHybrid X6"] }, { name: "M-Modelle (alle)", models: ["M2","M3","M4","M5","M6","M8","M135","M140i","M235","M240i","M340d","M340i","M440","M550","M760","M850"] }, { name: "X-Reihe (alle)", models: ["X1","X2","X3","X3 M","X3 M40","X3 M50","X4","X4 M","X4 M40","X5","X5 M","X5 M50","X5 M60","X6","X6 M","X6 M50","X6 M60","X7","X7 M50","X7 M60","XM"] }, { name: "Z-Reihe (alle)", models: ["Z1","Z3","Z3 M","Z4","Z4 M","Z4 M40","Z4 M40i","Z8"] }], models: [] },
     "Borgward": ["BX7","Isabella"],
     "Brilliance": ["BC3","BS2","BS4","BS6"],
     "Bugatti": ["Chiron","EB 110","Veyron"],
@@ -514,7 +519,7 @@
     "Maybach": ["57","62","Pullman","S650"],
     "Mazda": ["2","2 Hybrid","3","5","6","6e","121","323","626","929","B series","Bongo","BT-50","CX-3","CX-5","CX-6e","CX-7","CX-9","CX-30","CX-60","CX-80","Demio","E series","Millenia","MPV","MX-3","MX-5","MX-6","MX-30","Premacy","Protege","RX-6","RX-7","RX-8","Tribute","Xedos"],
     "McLaren": ["540C","570GT","570S","600LT","620R","650S","650S Coupé","650S Spider","675LT","675LT Spider","720S","750S","765","765LT","Artura","Elva","GT","GTS","MP4-12C","P1","Senna GTR","Speedtail"],
-    "Mercedes-Benz": ["190","200","220","230","240","250","260","270","280","290","300","320","350","380","400","416","420","450","500","560","600","A-Klasse","AMG GT","B-Klasse","C-Klasse","CE-Klasse","Citan","CL-Klasse","CLA-Klasse","CLC-Klasse","CLE-Klasse","CLK-Klasse","CLS-Klasse","E-Klasse","eCitan","EQA","EQB","EQC","EQE","EQE SUV","EQS","EQS SUV","EQT","EQV","eSprinter","eVito","G-Klasse","GL-Klasse","GLA-Klasse","GLB-Klasse","GLC-Klasse","GLE-Klasse","GLK-Klasse","GLS-Klasse","MB 100","ML-Klasse","R-Klasse","S-Klasse","SL-Klasse","SLC-Klasse","SLK-Klasse","SLR","SLS AMG","Sprinter","T-Klasse","V-Klasse","Vaneo","Viano","Vito","X-Klasse"],
+    "Mercedes-Benz": { groups: [{ name: "A-Klasse (alle)", models: ["A 35 AMG","A 45 AMG","A 140","A 150","A 160","A 170","A 180","A 190","A 200","A 210","A 220","A 250"] }, { name: "AMG GT (alle)", models: ["AMG GT","AMG GT C","AMG GT R","AMG GT S"] }, { name: "B-Klasse (alle)", models: ["B 150","B 160","B 170","B 180","B 200","B 220","B 250","B Electric Drive"] }, { name: "C-Klasse (alle)", models: ["C 30 AMG","C 32 AMG","C 36 AMG","C 43 AMG","C 55 AMG","C 63 AMG","C 160","C 180","C 200","C 220","C 230","C 240","C 250","C 270","C 280","C 300","C 320","C 350","C 400","C 450 AMG"] }, { name: "CE-Klasse (alle)", models: ["CE 200","CE 220","CE 230","CE 280","CE 300"] }, { name: "CL-Klasse (alle)", models: ["CL 55 AMG","CL 63 AMG","CL 65 AMG","CL 160","CL 180","CL 200","CL 220","CL 230","CL 320","CL 420","CL 500","CL 600"] }, { name: "CLA-Klasse (alle)", models: ["CLA 35 AMG","CLA 35 AMG Shooting Brake","CLA 45 AMG","CLA 45 AMG Shooting Brake","CLA 180","CLA 180 Shooting Brake","CLA 200","CLA 200 Shooting Brake","CLA 220","CLA 220 Shooting Brake","CLA 250","CLA 250 Shooting Brake","CLA 350","CLA Shooting Brake"] }, { name: "CLC-Klasse (alle)", models: ["CLC 160","CLC 180","CLC 200","CLC 220","CLC 230","CLC 250","CLC 350"] }, { name: "CLE-Klasse (alle)", models: ["CLE 53 AMG","CLE 180","CLE 200","CLE 220","CLE 300","CLE 450"] }, { name: "CLK-Klasse (alle)", models: ["CLK 55 AMG","CLK 63 AMG","CLK 200","CLK 220","CLK 230","CLK 240","CLK 270","CLK 280","CLK 320","CLK 350","CLK 430","CLK 500"] }, { name: "CLS-Klasse (alle)", models: ["CLS 53 AMG","CLS 55 AMG","CLS 63 AMG","CLS 63 AMG Shooting Brake","CLS 220","CLS 220 Shooting Brake","CLS 250","CLS 250 Shooting Brake","CLS 280","CLS 300","CLS 320","CLS 350","CLS 350 Shooting Brake","CLS 400","CLS 400 Shooting Brake","CLS 450","CLS 500","CLS 500 Shooting Brake","CLS Shooting Brake"] }, { name: "E-Klasse (alle)", models: ["E 36 AMG","E 43 AMG","E 50","E 53 AMG","E 55 AMG","E 60 AMG","E 63 AMG","E 200","E 220","E 230","E 240","E 250","E 260","E 270","E 280","E 290","E 300","E 320","E 350","E 400","E 420","E 430","E 450","E 500"] }, { name: "G-Klasse (alle)", models: ["G 55 AMG","G 63 AMG","G 65 AMG","G 230","G 240","G 250","G 270","G 280","G 290","G 300","G 320","G 350","G 400","G 450","G 500","G 580"] }, { name: "GL-Klasse (alle)", models: ["GL 55 AMG","GL 63 AMG","GL 320","GL 350","GL 400","GL 420","GL 450","GL 500"] }, { name: "GLA-Klasse (alle)", models: ["GLA 35 AMG","GLA 45 AMG","GLA 180","GLA 200","GLA 220","GLA 250"] }, { name: "GLB-Klasse (alle)", models: ["GLB 35 AMG","GLB 180","GLB 200","GLB 220","GLB 250","GLB 350"] }, { name: "GLC-Klasse (alle)", models: ["GLC 43 AMG","GLC 63 AMG","GLC 200","GLC 220","GLC 250","GLC 300","GLC 350","GLC 400","GLC 450"] }, { name: "GLE-Klasse (alle)", models: ["GLE 43 AMG","GLE 53 AMG","GLE 63 AMG","GLE 250","GLE 300","GLE 350","GLE 400","GLE 450","GLE 500","GLE 580"] }, { name: "GLK-Klasse (alle)", models: ["GLK 200","GLK 220","GLK 250","GLK 280","GLK 300","GLK 320","GLK 350"] }, { name: "GLS-Klasse (alle)", models: ["GLS 63","GLS 350","GLS 400","GLS 450","GLS 500","GLS 580","GLS 600"] }, { name: "Historische / klassische Mercedes-Benz Modelle (alle)", models: ["190","200","220","230","240","250","260","270","280","290","300","320","350","380","400","416","420","450","500","560","600"] }, { name: "ML-Klasse (alle)", models: ["ML 55 AMG","ML 63 AMG","ML 230","ML 250","ML 270","ML 280","ML 300","ML 320","ML 350","ML 400","ML 420","ML 430","ML 450","ML 500"] }, { name: "R-Klasse (alle)", models: ["R 63 AMG","R 280","R 300","R 320","R 350","R 500"] }, { name: "S-Klasse (alle)", models: ["S 55","S 63 AMG","S 65 AMG","S 250","S 260","S 280","S 300","S 320","S 350","S 400","S 420","S 430","S 450","S 500","S 550","S 560","S 580","S 600","S 650","S 680"] }, { name: "SL-Klasse (alle)", models: ["SL 43 AMG","SL 55 AMG","SL 60 AMG","SL 63 AMG","SL 65 AMG","SL 70 AMG","SL 73 AMG","SL 230","SL 250","SL 320","SL 350","SL 380","SL 400","SL 420","SL 450","SL 500","SL 560","SL 600","SL 680"] }, { name: "SLC-Klasse (alle)", models: ["SLC 43 AMG","SLC 180","SLC 200","SLC 250","SLC 300"] }, { name: "SLK-Klasse (alle)", models: ["SLK 32 AMG","SLK 55 AMG","SLK 200","SLK 230","SLK 250","SLK 280","SLK 300","SLK 320","SLK 350"] }, { name: "V-Klasse (alle)", models: ["V 200","V 220","V 230","V 250","V 280","V 300"] }, { name: "X-Klasse (alle)", models: ["X 220","X 250","X 350"] }], models: ["Citan","eCitan","EQA","EQB","EQC","EQE","EQE SUV","EQS","EQS SUV","EQT","EQV","eSprinter","eVito","MB 100","SLR","SLS AMG","Sprinter","T-Klasse","Vaneo","Viano","Vito"] },
     "Messerschmitt": [],
     "MG": ["Cyberster","EHS","HS","Marvel R","MG3","MG4","MG4 EV Urban","MG5","MGA","MGB","MGF","Midget","Montego","S5","S6 EV","S9","TD","TF","ZR","ZS","ZT"],
     "Microcar": ["DUÈ","Flex","M-8","M.Go","MC1","MC2","Virgo"],
@@ -712,15 +717,34 @@
   var SELECT_IDS = ['fMarke','fModell','fPreis','fEz','fKm','fKraftstoff','fGetriebe','fKarosserie','fZustand','fPS','fHalter','fFarbe','fSitze','fTueren','fUmwelt'];
   var TEXT_IDS = ['fOrt'];
 
+  // Baureihen-Unterteilung (z. B. BMW "3er Reihe", Mercedes-Benz "C-Klasse")
+  // als <optgroup> im nativen <select> - das statische Pendant zur
+  // dreistufigen Marke->Baureihe->Modell-Kaskade der Next.js-App (siehe
+  // docs/vehicle-data-sources.md, Abschnitt Modellgruppen-Hierarchie).
+  function optionsFor(list){
+    return list.map(function(m){ return '<option value="' + m + '">' + m + '</option>'; }).join('');
+  }
+  function modelOptionsFor(data){
+    if (Array.isArray(data)) return optionsFor(data);
+    var html = '';
+    (data.groups || []).forEach(function(g){
+      html += '<optgroup label="' + g.name + '">' + optionsFor(g.models) + '</optgroup>';
+    });
+    if (data.models && data.models.length) {
+      html += '<optgroup label="Weitere Modelle">' + optionsFor(data.models) + '</optgroup>';
+    }
+    return html;
+  }
+
   window.onMarkeChange = function(){
     var marke = document.getElementById('fMarke').value;
     var modelSelect = document.getElementById('fModell');
-    var models = MAKE_MODELS[marke] || [];
-    if (!marke) {
+    var data = MAKE_MODELS[marke];
+    if (!marke || !data) {
       modelSelect.innerHTML = '<option value="">Zuerst Marke wählen</option>';
       modelSelect.disabled = true;
     } else {
-      modelSelect.innerHTML = opts('Alle Modelle', models);
+      modelSelect.innerHTML = '<option value="">Alle Modelle</option>' + modelOptionsFor(data);
       modelSelect.disabled = false;
     }
   };
