@@ -253,8 +253,9 @@ model VehicleManufacturer {
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 
-  aliases VehicleManufacturerAlias[]
-  models  VehicleModel[]
+  aliases     VehicleManufacturerAlias[]
+  models      VehicleModel[]
+  modelGroups VehicleModelGroup[]
 
   @@unique([source, sourceId])
   @@unique([source, slug])
@@ -277,10 +278,52 @@ model VehicleManufacturerAlias {
   @@map("vehicle_manufacturer_aliases")
 }
 
+/**
+ * Modellgruppe/Baureihe zwischen Hersteller und Modell (z. B. BMW "3er
+ * Reihe", Mercedes-Benz "C-Klasse"). Optional: die meisten Hersteller haben
+ * (noch) keine Gruppen, ihre Modelle bleiben direkt unter dem Hersteller
+ * (VehicleModel.groupId = null). Aktuell nur für BMW/Mercedes-Benz befüllt
+ * (siehe mobile-de-model-groups.ts), die Struktur ist aber bewusst nicht auf
+ * diese zwei Marken beschränkt - jeder Hersteller kann künftig Gruppen
+ * bekommen, ohne Schemaänderung.
+ */
+model VehicleModelGroup {
+  id             String               @id @default(cuid())
+  manufacturerId String
+  manufacturer   VehicleManufacturer  @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  slug           String
+  // Rohname aus der Quelle (z. B. "3er Reihe"); displayName ("3er Reihe
+  // (alle)") ist der UI-Anzeigename für die Gruppen-Option "alle Modelle
+  // dieser Baureihe" - siehe Aufgabenstellung Abschnitt 53.
+  name           String
+  displayName    String?
+  isActive       Boolean              @default(true)
+  isPopular      Boolean              @default(false)
+  source         VehicleCatalogSource @default(MOBILE_DE)
+  sourceId       String?
+  sourceVersion  String?
+  sourceActive   Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  models VehicleModel[]
+
+  @@unique([source, sourceId])
+  @@unique([manufacturerId, slug])
+  @@index([manufacturerId, isActive])
+  @@map("vehicle_model_groups")
+}
+
 model VehicleModel {
   id              String                @id @default(cuid())
   manufacturerId  String
   manufacturer    VehicleManufacturer   @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  // Optional: Zugehörigkeit zu einer Modellgruppe/Baureihe (siehe
+  // VehicleModelGroup oben). null = Hersteller ohne Gruppen-Hierarchie oder
+  // Modell steht bewusst außerhalb jeder Gruppe (z. B. Mercedes-Benz
+  // Sprinter/Vito - Nutzfahrzeuge, keine PKW-Klasse).
+  groupId         String?
+  group           VehicleModelGroup?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
   slug            String
   name            String
   displayName     String?
@@ -316,6 +359,7 @@ model VehicleModel {
   @@index([manufacturerId, isActive])
   @@index([manufacturerId, isVisibleInPassengerCarSearch])
   @@index([vehicleCategory])
+  @@index([groupId])
   @@map("vehicle_models")
 }
 

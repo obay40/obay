@@ -40,6 +40,23 @@ export interface VehicleModelRecord {
   isHistoric: boolean;
   bodyTypes: string[];
   aliases: string[];
+  /**
+   * Zugehörige Modellgruppe/Baureihe (z. B. BMW "3er Reihe", Mercedes-Benz
+   * "C-Klasse"), falls der Hersteller eine 3-Ebenen-Hierarchie hat (aktuell
+   * nur BMW/Mercedes-Benz, siehe mobile-de-model-groups.ts). null bei
+   * Herstellern ohne Gruppen-Hierarchie oder gruppenlosen Modellen.
+   */
+  groupSlug: string | null;
+  groupName: string | null;
+}
+
+/** Modellgruppe/Baureihe (z. B. BMW "3er Reihe", Mercedes-Benz "C-Klasse"), siehe VehicleModelGroup-Schema. */
+export interface VehicleModelGroupRecord {
+  id: string;
+  slug: string;
+  name: string;
+  displayName: string | null;
+  isPopular: boolean;
 }
 
 /** Anzeigename: das gepflegte Override, sonst der Katalogname. */
@@ -65,12 +82,39 @@ const MODEL_SELECT = {
   isHistoric: true,
   bodyTypes: true,
   aliases: { select: { alias: true } },
+  group: { select: { slug: true, name: true, displayName: true } },
+} as const;
+
+const MODEL_GROUP_SELECT = {
+  id: true,
+  slug: true,
+  name: true,
+  displayName: true,
+  isPopular: true,
 } as const;
 
 function flattenAliases<T extends { aliases: { alias: string }[] }>(
   record: T,
 ): Omit<T, "aliases"> & { aliases: string[] } {
   return { ...record, aliases: record.aliases.map((a) => a.alias) };
+}
+
+type ModelRow = {
+  group: { slug: string; name: string; displayName: string | null } | null;
+  aliases: { alias: string }[];
+} & Record<string, unknown>;
+
+/** Entpackt Aliase UND die optionale Gruppen-Relation (siehe VehicleModelRecord.groupSlug/groupName). */
+function flattenModel<T extends ModelRow>(
+  record: T,
+): Omit<T, "aliases" | "group"> & { aliases: string[]; groupSlug: string | null; groupName: string | null } {
+  const { group, aliases, ...rest } = record;
+  return {
+    ...rest,
+    aliases: aliases.map((a) => a.alias),
+    groupSlug: group?.slug ?? null,
+    groupName: group ? resolveDisplayName(group) : null,
+  } as Omit<T, "aliases" | "group"> & { aliases: string[]; groupSlug: string | null; groupName: string | null };
 }
 
 function sortByDisplayName<T extends { name: string; displayName: string | null }>(records: T[]): T[] {
@@ -125,7 +169,7 @@ export async function listActiveModelsForManufacturerSlug(
     },
     select: MODEL_SELECT,
   });
-  return sortByDisplayName(rows.map(flattenAliases));
+  return sortByDisplayName(rows.map(flattenModel));
 }
 
 export async function findModelBySlug(
@@ -149,7 +193,74 @@ export async function findModelBySlug(
     },
     select: MODEL_SELECT,
   });
-  return row ? flattenAliases(row) : null;
+  return row ? flattenModel(row) : null;
+}
+
+/**
+ * Listet die Modellgruppen/Baureihen eines Herstellers (z. B. BMW "1er
+ * Reihe".."M-Modelle"). Leeres Array bei Herstellern ohne Gruppen-Hierarchie
+ * (aktuell alle außer BMW/Mercedes-Benz) - kein Fehlerfall, die UI blendet
+ * die Baureihen-Auswahl dann einfach aus (siehe ModelGroupCombobox).
+ */
+export async function listActiveModelGroupsForManufacturerSlug(
+  manufacturerSlug: string,
+): Promise<VehicleModelGroupRecord[]> {
+  const rows = await prisma.vehicleModelGroup.findMany({
+    where: {
+      source: ACTIVE_CATALOG_SOURCE,
+      isActive: true,
+      sourceActive: true,
+      manufacturer: {
+        slug: manufacturerSlug,
+        source: ACTIVE_CATALOG_SOURCE,
+        isActive: true,
+        sourceActive: true,
+        category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+      },
+    },
+    select: MODEL_GROUP_SELECT,
+  });
+  return sortByDisplayName(rows);
+}
+
+export async function findModelGroupBySlug(
+  manufacturerSlug: string,
+  groupSlug: string,
+): Promise<VehicleModelGroupRecord | null> {
+  return prisma.vehicleModelGroup.findFirst({
+    where: {
+      slug: groupSlug,
+      source: ACTIVE_CATALOG_SOURCE,
+      isActive: true,
+      sourceActive: true,
+      manufacturer: {
+        slug: manufacturerSlug,
+        source: ACTIVE_CATALOG_SOURCE,
+        isActive: true,
+        sourceActive: true,
+        category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
+      },
+    },
+    select: MODEL_GROUP_SELECT,
+  });
+}
+
+/** Gruppen-Gegenstück zu resolveManufacturerByTerm/resolveModelByTerm, z. B. "3er" → BMW "3er Reihe". */
+export async function resolveModelGroupByTerm(
+  manufacturerSlug: string,
+  term: string,
+): Promise<VehicleModelGroupRecord | null> {
+  const bySlug = await findModelGroupBySlug(manufacturerSlug, term);
+  if (bySlug) return bySlug;
+
+  // Anders als bei Herstellern/Modellen trägt displayName hier IMMER den
+  // UI-Zusatz "(alle)" (siehe mobile-de-model-groups.ts) - ein Nutzer tippt
+  // aber die Baureihe ohne diesen Zusatz ("3er Reihe", nicht "3er Reihe
+  // (alle)"). Der Fallback vergleicht deshalb gegen den rohen Namen, nicht
+  // gegen resolveDisplayName.
+  const key = normalizedSearchKey(term);
+  const all = await listActiveModelGroupsForManufacturerSlug(manufacturerSlug);
+  return all.find((group) => normalizedSearchKey(group.name) === key) ?? null;
 }
 
 /**
@@ -200,7 +311,7 @@ export async function resolveModelByTerm(
     },
     select: MODEL_SELECT,
   });
-  if (bySlugOrAlias) return flattenAliases(bySlugOrAlias);
+  if (bySlugOrAlias) return flattenModel(bySlugOrAlias);
 
   const key = normalizedSearchKey(term);
   const all = await listActiveModelsForManufacturerSlug(manufacturerSlug);

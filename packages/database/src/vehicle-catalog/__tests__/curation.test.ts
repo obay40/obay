@@ -45,12 +45,12 @@ describe("Nicht-PKW-Modelle dürfen NICHT in der PKW-Modellauswahl erscheinen", 
 
 describe("Echte PKW bleiben trotz Kuratierung auffindbar", () => {
   it.each([
-    ["Mercedes-Benz", "E-Klasse"],
-    ["Mercedes-Benz", "G-Klasse"],
+    ["Mercedes-Benz", "E 220"],
+    ["Mercedes-Benz", "G 63 AMG"],
     ["Mercedes-Benz", "Sprinter"],
     ["Mercedes-Benz", "Vito"],
-    ["BMW", "3er"],
-    ["BMW", "5er"],
+    ["BMW", "320"],
+    ["BMW", "520"],
     ["BMW", "X6"],
     ["Volkswagen", "Golf"],
     ["Volkswagen", "Passat"],

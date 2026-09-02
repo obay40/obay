@@ -53,38 +53,45 @@ packages/database/vendor/mobile-de/
 
 ### Modellgruppen-Hierarchie (Marke → Modellgruppe → Modell)
 
-mobile.de führt für **6 Marken** eine zweistufige Hierarchie: BMW, Ford,
-Lexus, MINI, Mercedes-Benz, Porsche. Beispiel: Mercedes-Benz "B-Klasse" ist
-eine Modellgruppe, "B 180" darunter ein konkretes Modell (Motorisierung).
-Bei allen anderen 147 Marken ist jede Zeile bereits ein flaches Einzelmodell.
+mobile.de führt für **6 Marken** eine zweistufige Hierarchie in den
+Rohdaten: BMW, Ford, Lexus, MINI, Mercedes-Benz, Porsche. Beispiel:
+Mercedes-Benz "B-Klasse" ist eine Modellgruppe, "B 180" darunter ein
+konkretes Modell (Motorisierung). Bei allen anderen 147 Marken ist jede
+Zeile bereits ein flaches Einzelmodell. Autoklick24 bildet diese Hierarchie
+auf zwei unterschiedliche Arten ab, je nachdem wie detailliert die
+Baureihen-Auswahl für die jeweilige Marke sein soll:
 
-Eine 1:1-Übernahme jeder Zeile als eigenständiges `VehicleModel` würde die
-Modellauswahl mit hunderten Motorisierungscodes zumüllen (BMW hätte z. B.
-statt ~50 sauberen Baureihen 173 Einträge wie "114", "320", "M340i" statt
-"1er"/"3er"). Deshalb gilt für diese 6 Marken das **"Modell vs.
-Variante"-Prinzip**: pro Baureihe entsteht genau **ein** kanonisches
-`VehicleModel` (z. B. "1er", "C-Klasse", "911"), die einzelnen
+**BMW und Mercedes-Benz: echte 3-Ebenen-Hierarchie.** Für diese zwei Marken
+bekommt jede Baureihe eine eigene `VehicleModelGroup` (z. B. "3er Reihe
+(alle)", "C-Klasse (alle)"), und JEDE Motorisierung bleibt ein eigenes,
+einzeln auswählbares `VehicleModel` mit `groupId` auf diese Gruppe (z. B.
+"320", "C 200" – keine Kollabierung zu Aliasen). Die Fahrzeugsuche zeigt
+dafür drei abhängige Felder (Marke → Baureihe → Modell); die Baureihe ist
+optional wählbar ("3er Reihe (alle)" ohne konkretes Modell). Realisiert wird
+das direkt über das `modellgruppe`-Feld der Rohdaten (10 echte BMW-Gruppen:
+1er–7er Reihe, M-Modelle, X-Reihe, Z-Reihe; 27 echte Mercedes-Klassen:
+A-Klasse–X-Klasse) plus ein paar synthetischen Gruppen für Baureihen ohne
+eigene mobile.de-Modellgruppen-Zeile (BMW 8er Reihe, BMW i, BMW
+Hybrid-Sondermodelle, Mercedes AMG GT, Mercedes Historische Modelle). Alle
+Details, Begründungen und Sonderfälle (u. a. Ausschlüsse, Alias-Konsolidierung
+bei Dubletten wie Mercedes "T-Klasse") stehen in
+[`packages/database/src/vehicle-catalog/mobile-de-model-groups.ts`](../packages/database/src/vehicle-catalog/mobile-de-model-groups.ts).
+Diese Struktur ist bewusst nicht auf BMW/Mercedes-Benz beschränkt – jeder
+Hersteller kann künftig dieselbe Gruppen-Hierarchie bekommen, ohne
+Schemaänderung (`VehicleModel.groupId` ist für alle Hersteller nullable).
+
+**Ford, Lexus, MINI, Porsche: Alias-Kollabierung ("Modell vs.
+Variante"-Prinzip).** Für diese vier Marken würde eine 1:1-Übernahme jeder
+Zeile als eigenständiges `VehicleModel` die Modellauswahl mit hunderten
+Motorisierungscodes zumüllen, ohne dass eine Baureihen-Zwischenebene in der
+UI gewünscht ist. Deshalb entsteht pro Baureihe genau **ein** kanonisches
+`VehicleModel` (z. B. Porsche "911", Lexus "ES"), die einzelnen
 Motorisierungs-/Trim-Codes werden als **Aliase** angehängt (durchsuchbar,
-aber nicht als eigene Zeile in der Auswahl sichtbar).
-
-Modellgruppen, die mehrere **echte, unterschiedliche** Nameplates unter
-einem mobile.de-Sammelbegriff bündeln (nicht nur Motorisierungen einer
-Baureihe), werden stattdessen anhand ihrer Kind-Zeilen aufgesplittet:
-
-- BMW "X-Reihe" → X1, X2, X3, X4, X5, X6, X7, XM (je eigenständiges Modell)
-- BMW "Z-Reihe" → Z1, Z3, Z4, Z8
-- BMW "M-Modelle" → M2, M3, M4, M5, M6, M8 (M-Performance-Trims wie M135/
-  M340i bleiben Aliase der jeweiligen Basisbaureihe)
-- Ford "Tourneo (alle)" → Tourneo, Grand Tourneo, Tourneo Connect, Tourneo
-  Courier, Tourneo Custom
-
-Zusätzliche, in den mobile.de-Rohdaten dokumentierte Sonderfälle (u. a. BMW
-8er und MINI Cooper/One/Aceman ohne eigene Modellgruppen-Zeile, Mercedes AMG
-GT/T-Klasse-Konsolidierung, Ford "Model a/b/t"-Schreibkorrektur, diverse
-unspezifische Sammelwerte wie BMW "Sondermodell" oder generische
-"Other"/"OTHER"-Platzhalter) sind vollständig, mit Begründung je Fall, in
-[`packages/database/src/vehicle-catalog/mobile-de-groupings.ts`](../packages/database/src/vehicle-catalog/mobile-de-groupings.ts)
-dokumentiert.
+aber nicht als eigene Zeile in der Auswahl sichtbar). Modellgruppen, die
+mehrere **echte, unterschiedliche** Nameplates bündeln (Ford "Tourneo
+(alle)" → Tourneo, Grand Tourneo, Tourneo Connect, Tourneo Courier, Tourneo
+Custom), werden anhand ihrer Kind-Zeilen aufgesplittet. Details in
+[`packages/database/src/vehicle-catalog/mobile-de-groupings.ts`](../packages/database/src/vehicle-catalog/mobile-de-groupings.ts).
 
 ### Importprozess
 
@@ -92,10 +99,13 @@ Script: [`packages/database/scripts/import-mobile-de-catalog.ts`](../packages/da
 (`pnpm mobile-de-catalog:import`)
 
 1. `catalog.json` einlesen
-2. Modellgruppen-Hierarchie auflösen (siehe oben) anhand von
-   `mobile-de-groupings.ts`: Zuordnung Rohwert → kanonisches Modell,
-   Split-Modellgruppen-Wrapper überspringen, unspezifische Sammelwerte
-   ausschließen, Nutzfahrzeug-Modell-Overrides anwenden
+2. Modellgruppen-Hierarchie auflösen (siehe oben): für BMW/Mercedes-Benz
+   `VehicleModelGroup`-Zeilen anlegen und jede Motorisierung als eigenes,
+   gruppenzugeordnetes `VehicleModel` importieren (`mobile-de-model-groups.ts`);
+   für Ford/Lexus/MINI/Porsche Rohwert → kanonisches Modell auflösen,
+   Split-Modellgruppen-Wrapper überspringen (`mobile-de-groupings.ts`); für
+   alle Marken zusätzlich unspezifische Sammelwerte ausschließen und
+   Nutzfahrzeug-Modell-Overrides anwenden
 3. Hersteller-Kategorie-Overrides anwenden (reine Nutzfahrzeugmarken wie
    Barkas/Piaggio/MAN/Iveco trotz "Auto/Car"-Scoping bei mobile.de; echte
    Dubletten wie "Bovensiepen" = ALPINA ausblenden)

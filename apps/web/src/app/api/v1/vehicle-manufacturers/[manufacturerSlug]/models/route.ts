@@ -52,6 +52,8 @@ export async function GET(
     isHistoric: model.isHistoric,
     bodyTypes: model.bodyTypes,
     aliases: model.aliases,
+    groupSlug: model.groupSlug,
+    groupName: model.groupName,
   }));
 
   return NextResponse.json(dto);

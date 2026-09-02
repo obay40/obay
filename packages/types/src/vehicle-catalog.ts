@@ -29,11 +29,34 @@ export interface VehicleModelDto {
   bodyTypes: string[];
   /** Alternative Schreibweisen (z. B. "1er" für "1 Series"), siehe VehicleManufacturerDto.aliases. */
   aliases: string[];
+  /**
+   * Zugehörige Modellgruppe/Baureihe (z. B. BMW "3er Reihe", Mercedes-Benz
+   * "C-Klasse"), falls der Hersteller eine Marke→Baureihe→Modell-Hierarchie
+   * hat (siehe VehicleModelGroupDto). null bei Herstellern ohne
+   * Gruppen-Hierarchie oder gruppenlosen Modellen (z. B. Mercedes-Benz
+   * Sprinter).
+   */
+  groupSlug: string | null;
+  groupName: string | null;
+}
+
+/** Modellgruppe/Baureihe zwischen Hersteller und Modell (z. B. BMW "3er Reihe (alle)"). */
+export interface VehicleModelGroupDto {
+  id: string;
+  slug: string;
+  name: string;
+  isPopular: boolean;
 }
 
 /** Filterkriterien der Fahrzeugsuche. UI-frei – von Startseiten-Suche und künftiger Detailsuche gleichermaßen nutzbar. */
 export interface VehicleSearchFilters {
   makeSlug?: string;
+  /**
+   * Optionale Modellgruppe/Baureihe (z. B. "3er-reihe"), unabhängig vom
+   * konkreten Modell wählbar – "BMW 3er Reihe (alle)" muss ohne
+   * modelSlug funktionieren (siehe VehicleModelGroupDto).
+   */
+  modelGroupSlug?: string;
   modelSlug?: string;
   yearFrom?: number;
   mileageTo?: number;
@@ -68,4 +91,22 @@ export async function fetchVehicleModels(
     throw new Error(`Fahrzeugmodelle konnten nicht geladen werden (${response.status})`);
   }
   return (await response.json()) as VehicleModelDto[];
+}
+
+/**
+ * Modellgruppen/Baureihen eines Herstellers. Liefert ein leeres Array bei
+ * Herstellern ohne Gruppen-Hierarchie (aktuell alle außer BMW/Mercedes-Benz)
+ * – kein Fehlerfall, siehe VehicleModelGroupDto.
+ */
+export async function fetchVehicleModelGroups(
+  manufacturerSlug: string,
+  baseUrl = "",
+): Promise<VehicleModelGroupDto[]> {
+  const response = await fetch(
+    `${baseUrl}/api/v1/vehicle-manufacturers/${encodeURIComponent(manufacturerSlug)}/model-groups`,
+  );
+  if (!response.ok) {
+    throw new Error(`Modellgruppen konnten nicht geladen werden (${response.status})`);
+  }
+  return (await response.json()) as VehicleModelGroupDto[];
 }

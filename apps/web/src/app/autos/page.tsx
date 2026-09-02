@@ -4,6 +4,7 @@ import { FuelType } from "@autoklick24/types";
 import { parseVehicleSearchParams } from "@autoklick24/validation";
 import {
   findManufacturerBySlug,
+  findModelGroupBySlug,
   findModelBySlug,
   resolveDisplayName,
 } from "@autoklick24/database";
@@ -39,6 +40,10 @@ export default async function VehicleMarketplacePage({
   const filters = parseVehicleSearchParams(rawParams);
 
   const manufacturer = filters.makeSlug ? await findManufacturerBySlug(filters.makeSlug) : null;
+  const modelGroup =
+    filters.makeSlug && filters.modelGroupSlug
+      ? await findModelGroupBySlug(filters.makeSlug, filters.modelGroupSlug)
+      : null;
   const model =
     filters.makeSlug && filters.modelSlug
       ? await findModelBySlug(filters.makeSlug, filters.modelSlug)
@@ -46,6 +51,10 @@ export default async function VehicleMarketplacePage({
 
   const summary: string[] = [];
   if (manufacturer) summary.push(`Marke: ${resolveDisplayName(manufacturer)}`);
+  // Baureihe wird auch ohne konkretes Modell angezeigt ("B-Klasse (alle)")
+  // - die Suche umfasst dann alle Modelle dieser Baureihe (siehe
+  // Aufgabenstellung, "ALLE muss funktionieren").
+  if (modelGroup) summary.push(`Baureihe: ${resolveDisplayName(modelGroup)}`);
   if (model) summary.push(`Modell: ${resolveDisplayName(model)}`);
   if (filters.yearFrom) summary.push(`Erstzulassung ab ${filters.yearFrom}`);
   if (filters.mileageTo)

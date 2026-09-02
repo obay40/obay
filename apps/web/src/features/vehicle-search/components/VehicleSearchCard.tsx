@@ -2,6 +2,7 @@
 
 import { useVehicleSearch } from "../hooks/useVehicleSearch";
 import { useVehicleManufacturers } from "../hooks/useVehicleManufacturers";
+import { useVehicleModelGroups } from "../hooks/useVehicleModelGroups";
 import {
   buildYearOptions,
   buildMileageOptions,
@@ -9,6 +10,7 @@ import {
   buildRadiusOptions,
 } from "../lib/options";
 import { MakeCombobox } from "./MakeCombobox";
+import { ModelGroupCombobox } from "./ModelGroupCombobox";
 import { ModelCombobox } from "./ModelCombobox";
 import { SelectField } from "./SelectField";
 import { LocationInput } from "./LocationInput";
@@ -41,6 +43,9 @@ const filtersIcon = (
 export function VehicleSearchCard() {
   const search = useVehicleSearch();
   const { manufacturers, loading: manufacturersLoading } = useVehicleManufacturers();
+  const { groups: modelGroups, loading: modelGroupsLoading } = useVehicleModelGroups(
+    search.filters.makeSlug,
+  );
   const popularMakes = manufacturers.filter((manufacturer) => manufacturer.isPopular);
 
   function handleSubmit(event: React.FormEvent) {
@@ -63,15 +68,24 @@ export function VehicleSearchCard() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <MakeCombobox
               value={search.filters.makeSlug}
               onChange={search.setMake}
               manufacturers={manufacturers}
               loading={manufacturersLoading}
             />
+            <ModelGroupCombobox
+              makeSlug={search.filters.makeSlug}
+              value={search.filters.modelGroupSlug}
+              onChange={search.setModelGroup}
+              groups={modelGroups}
+              loading={modelGroupsLoading}
+            />
             <ModelCombobox
               makeSlug={search.filters.makeSlug}
+              modelGroupSlug={search.filters.modelGroupSlug}
+              hasModelGroups={modelGroups.length > 0}
               value={search.filters.modelSlug}
               onChange={search.setModel}
             />

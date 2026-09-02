@@ -11,6 +11,7 @@ const fuelTypeValues = Object.values(FuelType) as [FuelType, ...FuelType[]];
  */
 export const vehicleSearchFiltersSchema = z.object({
   makeSlug: z.string().trim().min(1).max(60).optional(),
+  modelGroupSlug: z.string().trim().min(1).max(60).optional(),
   modelSlug: z.string().trim().min(1).max(60).optional(),
   yearFrom: z.coerce.number().int().min(1980).max(2100).optional(),
   mileageTo: z.coerce.number().int().min(0).max(2_000_000).optional(),
@@ -22,6 +23,7 @@ export const vehicleSearchFiltersSchema = z.object({
 
 const SEARCH_PARAM_KEYS = {
   makeSlug: "make",
+  modelGroupSlug: "modelGroup",
   modelSlug: "model",
   yearFrom: "yearFrom",
   mileageTo: "mileageTo",
@@ -36,6 +38,7 @@ export function buildVehicleSearchParams(filters: VehicleSearchFilters): URLSear
   const params = new URLSearchParams();
 
   if (filters.makeSlug) params.set(SEARCH_PARAM_KEYS.makeSlug, filters.makeSlug);
+  if (filters.modelGroupSlug) params.set(SEARCH_PARAM_KEYS.modelGroupSlug, filters.modelGroupSlug);
   if (filters.modelSlug) params.set(SEARCH_PARAM_KEYS.modelSlug, filters.modelSlug);
   if (filters.yearFrom) params.set(SEARCH_PARAM_KEYS.yearFrom, String(filters.yearFrom));
   if (filters.mileageTo) params.set(SEARCH_PARAM_KEYS.mileageTo, String(filters.mileageTo));
@@ -60,6 +63,7 @@ export function parseVehicleSearchParams(
 
   const parsed = vehicleSearchFiltersSchema.safeParse({
     makeSlug: get(SEARCH_PARAM_KEYS.makeSlug),
+    modelGroupSlug: get(SEARCH_PARAM_KEYS.modelGroupSlug),
     modelSlug: get(SEARCH_PARAM_KEYS.modelSlug),
     yearFrom: get(SEARCH_PARAM_KEYS.yearFrom),
     mileageTo: get(SEARCH_PARAM_KEYS.mileageTo),

@@ -23,21 +23,29 @@
  * mobile-de-groupings.ts) für den einen bekannten Präzedenzfall
  * (Mercedes-Benz Vario, LKW-Baureihe).
  *
- * MODELLGRUPPEN-HIERARCHIE: mobile.de liefert für 6 Marken (BMW, Ford,
- * Lexus, MINI, Mercedes-Benz, Porsche) eine zweistufige Hierarchie
- * (Marke → Modellgruppe → Modell), bei der die "Modell"-Kindzeilen meist
- * Motorisierungs-/Trim-Codes einer Baureihe sind (z. B. BMW "320" unter
- * Modellgruppe "3er Reihe"). Naive 1:1-Übernahme jeder Zeile als
- * eigenständiges VehicleModel würde die Modellauswahl mit hunderten
- * Motorisierungscodes zumüllen statt sauberer Baureihen ("Modell vs.
- * Variante"-Prinzip). Deshalb werden solche Zeilen anhand der manuell
- * gepflegten Zuordnungstabelle mobile-de-groupings.ts zu EINEM kanonischen
- * VehicleModel je Baureihe zusammengefasst; die Rohwerte werden als Aliase
+ * MODELLGRUPPEN-HIERARCHIE (Ford, Lexus, MINI, Porsche): mobile.de liefert
+ * für diese 4 Marken eine zweistufige Hierarchie (Marke → Modellgruppe →
+ * Modell), bei der die "Modell"-Kindzeilen meist Motorisierungs-/Trim-Codes
+ * einer Baureihe sind (z. B. Porsche "996" unter Modellgruppe
+ * "911er Reihe"). Naive 1:1-Übernahme jeder Zeile als eigenständiges
+ * VehicleModel würde die Modellauswahl mit hunderten Motorisierungscodes
+ * zumüllen statt sauberer Baureihen ("Modell vs. Variante"-Prinzip).
+ * Deshalb werden solche Zeilen anhand der manuell gepflegten
+ * Zuordnungstabelle mobile-de-groupings.ts zu EINEM kanonischen VehicleModel
+ * je Baureihe zusammengefasst; die Rohwerte werden als Aliase
  * (VehicleModelAlias) angehängt, bleiben also durchsuchbar. Modellgruppen,
- * die mehrere echte Nameplates bündeln (z. B. BMW "X-Reihe" = X1..X7),
+ * die mehrere echte Nameplates bündeln (z. B. Ford "Tourneo (alle)"),
  * werden stattdessen anhand ihrer Kinder aufgesplittet (siehe
- * SPLIT_MODELLGRUPPEN). Marken ohne Modellgruppen-Hierarchie sind von all
- * dem unberührt: jede Katalogzeile bleibt 1:1 ein eigenes Modell.
+ * SPLIT_MODELLGRUPPEN).
+ *
+ * ECHTE 3-EBENEN-HIERARCHIE (BMW, Mercedes-Benz): für diese zwei Marken
+ * bleibt JEDE Motorisierung ein eigenständiges, auswählbares VehicleModel -
+ * zusätzlich einer VehicleModelGroup (Baureihe/Klasse, z. B. "3er Reihe",
+ * "C-Klasse") zugeordnet, statt zu einem kanonischen Modell zu kollabieren
+ * (siehe mobile-de-model-groups.ts für die genaue Begründung und die
+ * synthetischen Gruppen ohne eigene mobile.de-Modellgruppen-Zeile). Marken
+ * ohne jede Modellgruppen-Hierarchie sind von all dem unberührt: jede
+ * Katalogzeile bleibt 1:1 ein eigenes, gruppenloses Modell.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -54,6 +62,12 @@ import {
   MANUFACTURER_CATEGORY_OVERRIDES,
   MANUFACTURER_HIDDEN_DUPLICATES,
 } from "../src/vehicle-catalog/mobile-de-groupings";
+import {
+  SYNTHETIC_GROUPS,
+  HIERARCHY_EXCLUDE_MODEL_NAMES,
+  HIERARCHY_ALIAS_ATTACHMENTS,
+  MAKES_WITH_MODEL_GROUP_HIERARCHY,
+} from "../src/vehicle-catalog/mobile-de-model-groups";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CATALOG_PATH = join(__dirname, "..", "vendor", "mobile-de", "catalog.json");
@@ -132,9 +146,29 @@ const stats = {
   modelsSkippedExcluded: 0,
   modelsSkippedExtraAlias: 0,
   commercialOverridesApplied: 0,
+  groupsCreated: 0,
+  groupsUpdated: 0,
+  groupsUnchanged: 0,
+  groupsDeactivated: 0,
   warnings: [] as string[],
   errors: [] as string[],
 };
+
+/** mobile.de-Rohwerte, die trotz Katalogeintrag nicht importiert werden (BMW/MB-Sonderfälle, siehe mobile-de-model-groups.ts). */
+const hierarchyExcludeSet = new Set(
+  HIERARCHY_EXCLUDE_MODEL_NAMES.map((e) => `${e.marke}::${e.modell}`),
+);
+const hierarchyAliasMap = new Map<string, { targetModelName: string }>();
+for (const a of HIERARCHY_ALIAS_ATTACHMENTS) {
+  hierarchyAliasMap.set(`${a.marke}::${a.aliasModelName}`, { targetModelName: a.targetModelName });
+}
+const syntheticGroupsByMake = new Map<string, typeof SYNTHETIC_GROUPS>();
+for (const g of SYNTHETIC_GROUPS) {
+  const list = syntheticGroupsByMake.get(g.marke) ?? [];
+  list.push(g);
+  syntheticGroupsByMake.set(g.marke, list);
+}
+const allGroupSourceIds: string[] = [];
 
 function readCatalog(): SourceCatalog {
   return JSON.parse(readFileSync(CATALOG_PATH, "utf-8")) as SourceCatalog;
@@ -377,6 +411,207 @@ async function upsertModel(
   }
 }
 
+async function upsertModelGroup(
+  manufacturerId: string,
+  marke: string,
+  name: string,
+  displayName: string,
+  version: string,
+): Promise<string> {
+  const slug = slugify(name);
+  const sourceId = `${slugify(marke)}/group/${slug}`;
+
+  const existing = await prisma.vehicleModelGroup.findUnique({
+    where: { source_sourceId: { source: VehicleCatalogSource.MOBILE_DE, sourceId } },
+  });
+
+  const data = {
+    manufacturerId,
+    slug,
+    name,
+    displayName,
+    isActive: true,
+    isPopular: false,
+    source: VehicleCatalogSource.MOBILE_DE,
+    sourceId,
+    sourceVersion: version,
+    sourceActive: true,
+  };
+
+  const group = await prisma.vehicleModelGroup.upsert({
+    where: { source_sourceId: { source: VehicleCatalogSource.MOBILE_DE, sourceId } },
+    update: data,
+    create: data,
+  });
+
+  if (!existing) stats.groupsCreated += 1;
+  else if (existing.name !== data.name || existing.displayName !== data.displayName) stats.groupsUpdated += 1;
+  else stats.groupsUnchanged += 1;
+
+  allGroupSourceIds.push(sourceId);
+  return group.id;
+}
+
+async function upsertHierarchyModel(
+  manufacturerId: string,
+  marke: string,
+  entry: SourceEntry,
+  groupId: string | null,
+  isHistoric: boolean,
+  version: string,
+): Promise<{ sourceId: string; id: string }> {
+  const slug = slugify(entry.modell);
+  const sourceId = `${slugify(marke)}/${slug}`;
+  const commercialOverride = commercialOverrideMap.get(groupKey(marke, entry.modell));
+  const displayName = entry.anzeige !== entry.modell ? entry.anzeige : null;
+  const vehicleCategory: VehicleCategory = commercialOverride ? TRUCK : PASSENGER_CAR;
+  const isVisibleInPassengerCarSearch = !commercialOverride;
+  if (commercialOverride) stats.commercialOverridesApplied += 1;
+
+  const existing = await prisma.vehicleModel.findUnique({
+    where: { source_sourceId: { source: VehicleCatalogSource.MOBILE_DE, sourceId } },
+  });
+
+  const data = {
+    manufacturerId,
+    groupId,
+    slug,
+    name: entry.modell,
+    displayName,
+    isActive: true,
+    isPopular: false,
+    isHistoric,
+    bodyTypes: [] as string[],
+    vehicleCategory,
+    isVisibleInPassengerCarSearch,
+    curationStatus: (commercialOverride ? "MANUAL_EXCLUDED" : "AUTO_APPROVED") as const,
+    source: VehicleCatalogSource.MOBILE_DE,
+    sourceId,
+    sourceVersion: version,
+    sourceActive: true,
+  };
+
+  try {
+    const saved = await prisma.vehicleModel.upsert({
+      where: { source_sourceId: { source: VehicleCatalogSource.MOBILE_DE, sourceId } },
+      update: data,
+      create: data,
+    });
+
+    if (!existing) stats.modelsCreated += 1;
+    else if (
+      existing.name !== data.name ||
+      existing.displayName !== data.displayName ||
+      existing.groupId !== data.groupId ||
+      existing.isHistoric !== data.isHistoric ||
+      existing.vehicleCategory !== data.vehicleCategory ||
+      existing.isVisibleInPassengerCarSearch !== data.isVisibleInPassengerCarSearch
+    ) {
+      stats.modelsUpdated += 1;
+    } else stats.modelsUnchanged += 1;
+
+    return { sourceId, id: saved.id };
+  } catch (error) {
+    stats.errors.push(`Modell "${sourceId}" konnte nicht gespeichert werden: ${String(error)}`);
+    return { sourceId, id: "" };
+  }
+}
+
+/**
+ * Echte 3-Ebenen-Hierarchie für BMW/Mercedes-Benz (siehe
+ * mobile-de-model-groups.ts): jede Rohzeile bleibt ein eigenständiges
+ * VehicleModel, zusätzlich einer VehicleModelGroup zugeordnet (reale Gruppe
+ * aus dem `modellgruppe`-Feld der Quelle, oder eine der wenigen
+ * synthetischen Gruppen für Baureihen ohne eigene mobile.de-Modellgruppen-
+ * Zeile). Modellgruppen-Wrapperzeilen selbst (ebene="Modellgruppe") werden
+ * nicht als Modell importiert, sondern erzeugen nur die Gruppe.
+ */
+async function processHierarchyMake(
+  marke: string,
+  entries: SourceEntry[],
+  manufacturerId: string,
+  version: string,
+): Promise<string[]> {
+  const modelSourceIds: string[] = [];
+  const groupIdByName = new Map<string, string>();
+
+  const realGroupNames = new Set(
+    entries.flatMap((e) => (e.modellgruppe ? [e.modellgruppe] : [])),
+  );
+  for (const groupName of realGroupNames) {
+    const id = await upsertModelGroup(manufacturerId, marke, groupName, `${groupName} (alle)`, version);
+    groupIdByName.set(groupName, id);
+  }
+
+  const syntheticGroups = syntheticGroupsByMake.get(marke) ?? [];
+  const syntheticGroupByChild = new Map<string, (typeof syntheticGroups)[number]>();
+  for (const g of syntheticGroups) {
+    const id = await upsertModelGroup(manufacturerId, marke, g.name, g.displayName, version);
+    groupIdByName.set(g.name, id);
+    for (const child of g.childModelNames) syntheticGroupByChild.set(child, g);
+  }
+
+  const modelIdByName = new Map<string, string>();
+  const pendingAliases: { targetModelName: string; aliasName: string }[] = [];
+  const seenSlugs = new Set<string>();
+
+  for (const entry of entries) {
+    if (entry.ebene === "Modellgruppe") continue; // Wrapper-Zeile, erzeugt nur die Gruppe (siehe oben).
+
+    const key = groupKey(marke, entry.modell);
+    if (hierarchyExcludeSet.has(key) || excludeSet.has(key)) {
+      stats.modelsSkippedExcluded += 1;
+      continue;
+    }
+    const aliasAttachment = hierarchyAliasMap.get(key);
+    if (aliasAttachment) {
+      pendingAliases.push({ targetModelName: aliasAttachment.targetModelName, aliasName: entry.modell });
+      stats.modelsSkippedExtraAlias += 1;
+      continue;
+    }
+
+    const slug = slugify(entry.modell);
+    if (seenSlugs.has(slug)) {
+      stats.warnings.push(`Modell-Dublette übersprungen: "${marke}/${entry.modell}" (Slug "${slug}").`);
+      continue;
+    }
+    seenSlugs.add(slug);
+
+    const synthetic = syntheticGroupByChild.get(entry.modell);
+    const groupId = entry.modellgruppe
+      ? (groupIdByName.get(entry.modellgruppe) ?? null)
+      : synthetic
+        ? (groupIdByName.get(synthetic.name) ?? null)
+        : null;
+    const isHistoric = synthetic?.markChildrenHistoric ?? false;
+
+    const { sourceId, id } = await upsertHierarchyModel(manufacturerId, marke, entry, groupId, isHistoric, version);
+    if (id) {
+      modelSourceIds.push(sourceId);
+      modelIdByName.set(entry.modell, id);
+    }
+  }
+
+  const aliasesByTarget = new Map<string, string[]>();
+  for (const pending of pendingAliases) {
+    if (!modelIdByName.has(pending.targetModelName)) {
+      stats.warnings.push(
+        `HIERARCHY_ALIAS_ATTACHMENTS: Ziel-Modell "${marke}/${pending.targetModelName}" für Alias "${pending.aliasName}" nicht gefunden.`,
+      );
+      continue;
+    }
+    const list = aliasesByTarget.get(pending.targetModelName) ?? [];
+    list.push(pending.aliasName);
+    aliasesByTarget.set(pending.targetModelName, list);
+  }
+  for (const [targetModelName, aliases] of aliasesByTarget) {
+    const modelId = modelIdByName.get(targetModelName);
+    if (modelId) await syncModelAliases(modelId, aliases);
+  }
+
+  return modelSourceIds;
+}
+
 async function main() {
   const catalog = readCatalog();
   console.log("mobile.de-Katalog-Import gestartet");
@@ -396,8 +631,14 @@ async function main() {
 
   for (const marke of allMakes) {
     const manufacturerId = await upsertManufacturer(marke, catalog.version);
-
     const entries = entriesByMake.get(marke) ?? [];
+
+    if (MAKES_WITH_MODEL_GROUP_HIERARCHY.has(marke)) {
+      const sourceIds = await processHierarchyMake(marke, entries, manufacturerId, catalog.version);
+      allSourceIds.push(...sourceIds);
+      continue;
+    }
+
     const groups = buildCanonicalGroups(marke, entries);
 
     const seenSlugs = new Set<string>();
@@ -423,6 +664,16 @@ async function main() {
   });
   stats.modelsDeactivated = deactivated.count;
 
+  const groupsDeactivated = await prisma.vehicleModelGroup.updateMany({
+    where: {
+      source: VehicleCatalogSource.MOBILE_DE,
+      sourceId: { notIn: allGroupSourceIds },
+      sourceActive: true,
+    },
+    data: { sourceActive: false },
+  });
+  stats.groupsDeactivated = groupsDeactivated.count;
+
   console.log("mobile.de-Katalog-Import abgeschlossen\n");
   console.log(
     `Manufacturers imported: ${stats.manufacturersCreated}\n` +
@@ -435,6 +686,12 @@ async function main() {
       `Models unchanged: ${stats.modelsUnchanged}\n` +
       `Models deactivated (nicht mehr in Quelle): ${stats.modelsDeactivated}\n` +
       `Model aliases synced (Motorisierungs-/Trim-Codes): ${stats.aliasesSynced}\n`,
+  );
+  console.log(
+    `Model groups (Baureihen/Klassen) created: ${stats.groupsCreated}\n` +
+      `Model groups updated: ${stats.groupsUpdated}\n` +
+      `Model groups unchanged: ${stats.groupsUnchanged}\n` +
+      `Model groups deactivated: ${stats.groupsDeactivated}\n`,
   );
   console.log(
     `RAW-Zeilen übersprungen als Split-Modellgruppen-Wrapper: ${stats.modelsSkippedSplitWrapper}\n` +

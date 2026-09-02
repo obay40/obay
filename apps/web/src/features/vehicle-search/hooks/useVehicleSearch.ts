@@ -25,9 +25,17 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
   }, [filters]);
 
   function setMake(makeSlug: string | undefined) {
-    // Modell hängt von der Marke ab: ein Markenwechsel macht ein zuvor
-    // gewähltes Modell ungültig, daher wird es hier bewusst mit zurückgesetzt.
-    setFilters((prev) => ({ ...prev, makeSlug, modelSlug: undefined }));
+    // Baureihe und Modell hängen von der Marke ab: ein Markenwechsel macht
+    // eine zuvor gewählte Baureihe/ein Modell ungültig, daher werden sie
+    // hier bewusst mit zurückgesetzt.
+    setFilters((prev) => ({ ...prev, makeSlug, modelGroupSlug: undefined, modelSlug: undefined }));
+  }
+
+  function setModelGroup(modelGroupSlug: string | undefined) {
+    // Modell hängt von der Baureihe ab: ein Baureihenwechsel macht ein
+    // zuvor gewähltes Modell ungültig (siehe Aufgabenstellung, "Marke →
+    // Baureihe → Modell").
+    setFilters((prev) => ({ ...prev, modelGroupSlug, modelSlug: undefined }));
   }
 
   function setModel(modelSlug: string | undefined) {
@@ -71,6 +79,7 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     filters,
     hasActiveFilters,
     setMake,
+    setModelGroup,
     setModel,
     setYearFrom,
     setMileageTo,
