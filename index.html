@@ -153,17 +153,44 @@
   p.section-sub{text-align:center;color:var(--ink-muted);margin-top:8px;max-width:520px;margin-left:auto;margin-right:auto;}
 
   .search-card{
-    max-width:660px;margin:0 auto;background:#fff;border:1px solid var(--border);
-    border-radius:20px;box-shadow:var(--shadow-card);padding:30px 32px;
+    max-width:900px;margin:0 auto;background:#fff;border:1px solid var(--border);
+    border-radius:20px;box-shadow:var(--shadow-card);padding:28px 30px 26px;
   }
   .search-card h2{font-size:1.3rem;}
-  .search-card p{color:var(--ink-muted);margin-top:4px;font-size:.92rem;}
-  .search-fields{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px;}
-  @media (max-width:600px){.search-fields{grid-template-columns:1fr 1fr;}}
-  .search-fields div{
-    border:1px solid var(--border-strong);background:var(--bg-subtle);
-    border-radius:12px;padding:11px 12px;font-size:.85rem;color:var(--ink-soft);
+  .search-card > p{color:var(--ink-muted);margin-top:4px;font-size:.92rem;}
+
+  /* ---------- Fahrzeugsuche (mobile.de/AutoScout24-artiges Filterraster) ---------- */
+  .filter-grid{
+    margin-top:22px;display:grid;gap:12px;
+    grid-template-columns:repeat(4, 1fr);
   }
+  @media (max-width:820px){.filter-grid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:480px){.filter-grid{grid-template-columns:1fr;}}
+  .filter-field label{
+    display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--ink-soft);margin-bottom:5px;
+  }
+  .filter-field select,
+  .filter-field input{
+    width:100%;border:1px solid var(--border-strong);border-radius:10px;
+    padding:10px 12px;font-size:.88rem;font-family:var(--font-body);
+    background:#fff;color:var(--ink);height:40px;
+  }
+  .filter-field select{cursor:pointer;}
+  .filter-actions{
+    margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .filter-reset{font-size:.83rem;font-weight:600;color:var(--ink-muted);background:none;border:0;padding:8px 0;cursor:pointer;}
+  .filter-reset:hover{color:var(--brand-600);}
+  .filter-submit{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--brand-500);color:#fff;border:0;border-radius:10px;
+    padding:13px 28px;font-size:.94rem;font-weight:700;cursor:pointer;
+    box-shadow:var(--shadow-card);transition:background .15s;
+    font-family:var(--font-body);
+  }
+  .filter-submit:hover{background:var(--brand-600);}
+  .filter-note{margin-top:14px;font-size:.78rem;color:var(--ink-soft);line-height:1.5;}
 
   .steps{max-width:1020px;margin:40px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
   @media (max-width:820px){.steps{grid-template-columns:1fr 1fr;}}
@@ -361,6 +388,89 @@
   function mailLink(betreff){
     return "mailto:" + window.AUTOKLICK24_EMAIL + "?subject=" + encodeURIComponent(betreff);
   }
+  // ---------- Fahrzeugsuche (Filterfeld wie mobile.de/AutoScout24) ----------
+  var MARKEN = ["Volkswagen","BMW","Mercedes-Benz","Audi","Opel","Ford","Škoda","Renault","Seat","Volvo","Toyota","Hyundai","Kia","Fiat","Peugeot","Mazda","Porsche","MINI","Tesla","Sonstige"];
+  var PREISE = [5000,10000,15000,20000,25000,30000,40000,50000,75000,100000];
+  var JAHRE = (function(){ var out=[]; for (var y=2026;y>=2010;y--) out.push(y); return out; })();
+  var KMSTAENDE = [5000,10000,20000,30000,50000,75000,100000,150000,200000];
+  var KRAFTSTOFFE = ["Benzin","Diesel","Elektro","Hybrid","Plug-in-Hybrid","Autogas (LPG)","Erdgas (CNG)"];
+  var GETRIEBE = ["Automatik","Schaltgetriebe"];
+
+  function opts(placeholder, values, formatter){
+    var html = '<option value="">' + placeholder + '</option>';
+    values.forEach(function(v){
+      var label = formatter ? formatter(v) : v;
+      html += '<option value="' + label + '">' + label + '</option>';
+    });
+    return html;
+  }
+
+  function selectField(id, label, optionsHtml){
+    return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
+      + '<select id="' + id + '">' + optionsHtml + '</select></div>';
+  }
+  function textField(id, label, placeholder){
+    return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
+      + '<input id="' + id + '" type="text" placeholder="' + placeholder + '"></div>';
+  }
+
+  function searchFilterCard(){
+    return ''
+      + '<div class="search-card">'
+      + '  <h2>Fahrzeug suchen</h2>'
+      + '  <p>Grenze deine Suche ein – die Anfrage geht direkt an unser Team, solange der automatische Marktplatz im Aufbau ist.</p>'
+      + '  <form id="filterForm" onsubmit="return false;">'
+      + '    <div class="filter-grid">'
+      +        selectField('fMarke','Marke', opts('Alle Marken', MARKEN))
+      +        textField('fModell','Modell','z. B. Golf, 3er, A-Klasse')
+      +        selectField('fPreis','Preis bis', opts('Egal', PREISE, function(v){ return v.toLocaleString('de-DE') + ' €'; }))
+      +        selectField('fEz','Erstzulassung ab', opts('Egal', JAHRE))
+      +        selectField('fKm','Kilometerstand bis', opts('Egal', KMSTAENDE, function(v){ return v.toLocaleString('de-DE') + ' km'; }))
+      +        selectField('fKraftstoff','Kraftstoff', opts('Alle', KRAFTSTOFFE))
+      +        selectField('fGetriebe','Getriebe', opts('Alle', GETRIEBE))
+      +        textField('fOrt','Standort','PLZ oder Ort')
+      + '    </div>'
+      + '    <div class="filter-actions">'
+      + '      <button type="button" class="filter-reset" onclick="resetFilterForm()">Filter zurücksetzen</button>'
+      + '      <button type="submit" class="filter-submit" onclick="submitFilterSearch()">' + waIcon + ' Fahrzeuge finden</button>'
+      + '    </div>'
+      + '    <p class="filter-note">Der automatisierte Fahrzeugmarktplatz mit sofortigen Ergebnissen entsteht in Phase 2. Bis dahin sendet "Fahrzeuge finden" deine Kriterien direkt per WhatsApp an unser Team.</p>'
+      + '  </form>'
+      + '</div>';
+  }
+
+  // Auf window hängen: inline onclick-Attribute suchen Bezeichner global,
+  // nicht im Scope dieser IIFE.
+  window.resetFilterForm = function(){
+    ['fMarke','fPreis','fEz','fKm','fKraftstoff','fGetriebe'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['fModell','fOrt'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  };
+
+  window.submitFilterSearch = function(){
+    var val = function(id){ var el = document.getElementById(id); return el && el.value ? el.value.trim() : ''; };
+    var parts = [];
+    if (val('fMarke')) parts.push('Marke: ' + val('fMarke'));
+    if (val('fModell')) parts.push('Modell: ' + val('fModell'));
+    if (val('fPreis')) parts.push('Preis bis: ' + val('fPreis'));
+    if (val('fEz')) parts.push('Erstzulassung ab: ' + val('fEz'));
+    if (val('fKm')) parts.push('Kilometerstand bis: ' + val('fKm'));
+    if (val('fKraftstoff')) parts.push('Kraftstoff: ' + val('fKraftstoff'));
+    if (val('fGetriebe')) parts.push('Getriebe: ' + val('fGetriebe'));
+    if (val('fOrt')) parts.push('Standort: ' + val('fOrt'));
+
+    var text = parts.length
+      ? 'Hallo, ich suche ein Fahrzeug mit folgenden Kriterien:\n' + parts.join('\n')
+      : 'Hallo, ich suche ein Fahrzeug auf Autoklick24 und möchte mich beraten lassen.';
+
+    window.open('https://wa.me/' + window.AUTOKLICK24_WHATSAPP + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  }
+
   function contactBox(anliegen, betreff){
     return '<div class="contact-box">'
       + '<a class="contact-btn wa" href="' + waLink(anliegen) + '" target="_blank" rel="noopener">' + waIcon + ' Per WhatsApp kontaktieren</a>'
@@ -385,12 +495,7 @@
     + '</div></section>'
 
     + '<section class="section-alt"><div class="wrap">'
-    + '  <div class="search-card">'
-    + '    <h2>Autos kaufen</h2>'
-    + '    <p>Finde dein nächstes Fahrzeug im Autoklick24 Marktplatz.</p>'
-    + '    <div class="search-fields"><div>Marke</div><div>Modell</div><div>Preis bis</div><div>Standort</div></div>'
-    + '    <a href="#/autos" class="btn btn-dark" style="margin-top:22px;">Fahrzeuge suchen</a>'
-    + '  </div>'
+    +   searchFilterCard()
     + '</div></section>'
 
     + '<section><div class="wrap">'
@@ -487,7 +592,12 @@
 
   var routes = {
     '/': homeView,
-    '/autos': function(){return placeholderView('Autos kaufen','Der Fahrzeugmarktplatz mit Suche, Filtern und Sortierung entsteht in Phase 2. Bis dahin sag uns per Nachricht, wonach du suchst.','Phase 2',{anliegen:'kaufen – ich suche ein Fahrzeug',betreff:'Fahrzeugsuche über Autoklick24'});},
+    '/autos': function(){
+      return '<div class="wrap" style="padding-top:40px;">'
+        + '<div style="text-align:center;margin-bottom:8px;"><span class="badge">In Entwicklung – Phase 2</span></div>'
+        + '</div>'
+        + '<section style="padding-top:16px;"><div class="wrap">' + searchFilterCard() + '</div></section>';
+    },
     '/auto-verkaufen': function(){return placeholderView('Auto verkaufen','Der Fahrzeug-Erfassungs-Wizard mit automatischer Bewertung entsteht in Phase 3 und 4. Schreib uns jetzt schon Marke, Modell, Baujahr und Kilometerstand – wir melden uns mit einem Angebot.','Phase 3–4',{anliegen:'direkt an Autoklick24 verkaufen',betreff:'Fahrzeug verkaufen über Autoklick24'});},
     '/auto-vermitteln': function(){return placeholderView('Auto vermitteln','Der Vermittlungs-Workflow entsteht in Phase 5. Schreib uns jetzt schon dein Fahrzeug – wir melden uns zum weiteren Vorgehen.','Phase 5',{anliegen:'über Autoklick24 vermitteln lassen',betreff:'Fahrzeug vermitteln über Autoklick24'});},
     '/auto-inserieren': function(){return placeholderView('Auto inserieren','Das Erstellen eigener Inserate mit Preisbewertung entsteht in Phase 6. Bis dahin erstellen wir dein Inserat auf Anfrage manuell für dich.','Phase 6',{anliegen:'selbst inserieren',betreff:'Fahrzeug inserieren über Autoklick24'});},
