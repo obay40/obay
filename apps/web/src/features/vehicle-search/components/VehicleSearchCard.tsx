@@ -1,7 +1,7 @@
 "use client";
 
-import { VEHICLE_MAKES } from "@autoklick24/types";
 import { useVehicleSearch } from "../hooks/useVehicleSearch";
+import { useVehicleManufacturers } from "../hooks/useVehicleManufacturers";
 import {
   buildYearOptions,
   buildMileageOptions,
@@ -18,8 +18,6 @@ const YEAR_OPTIONS = buildYearOptions();
 const MILEAGE_OPTIONS = buildMileageOptions();
 const PRICE_OPTIONS = buildPriceOptions();
 const RADIUS_OPTIONS = buildRadiusOptions();
-
-const POPULAR_MAKES = VEHICLE_MAKES.filter((make) => make.popular);
 
 const searchIcon = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -42,6 +40,8 @@ const filtersIcon = (
 
 export function VehicleSearchCard() {
   const search = useVehicleSearch();
+  const { manufacturers, loading: manufacturersLoading } = useVehicleManufacturers();
+  const popularMakes = manufacturers.filter((manufacturer) => manufacturer.isPopular);
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -64,7 +64,12 @@ export function VehicleSearchCard() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <MakeCombobox value={search.filters.makeSlug} onChange={search.setMake} />
+            <MakeCombobox
+              value={search.filters.makeSlug}
+              onChange={search.setMake}
+              manufacturers={manufacturers}
+              loading={manufacturersLoading}
+            />
             <ModelCombobox
               makeSlug={search.filters.makeSlug}
               value={search.filters.modelSlug}
@@ -157,19 +162,19 @@ export function VehicleSearchCard() {
           Beliebte Marken
         </p>
         <div className="mt-2.5 flex flex-wrap gap-2">
-          {POPULAR_MAKES.map((make) => (
+          {popularMakes.map((manufacturer) => (
             <button
-              key={make.slug}
+              key={manufacturer.slug}
               type="button"
-              onClick={() => search.setMake(make.slug)}
-              aria-pressed={search.filters.makeSlug === make.slug}
+              onClick={() => search.setMake(manufacturer.slug)}
+              aria-pressed={search.filters.makeSlug === manufacturer.slug}
               className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                search.filters.makeSlug === make.slug
+                search.filters.makeSlug === manufacturer.slug
                   ? "border-brand-500 bg-brand-50 text-brand-700"
                   : "border-navy-200 text-navy-700 hover:border-navy-300 hover:bg-navy-50 bg-white"
               }`}
             >
-              {make.name}
+              {manufacturer.name}
             </button>
           ))}
         </div>

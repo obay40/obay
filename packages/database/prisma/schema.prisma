@@ -170,3 +170,102 @@ model AuditLog {
   @@index([userId])
   @@map("audit_logs")
 }
+
+// ---------------------------------------------------------------------------
+// Fahrzeugkatalog (Hersteller/Modelle)
+//
+// Ersetzt den früheren hart codierten VEHICLE_MAKES-Katalog aus
+// packages/types. Wird per packages/database/scripts/import-vehicle-catalog.ts
+// aus einem vendorten VehiclesDB-Snapshot befüllt (siehe
+// docs/vehicle-data-sources.md) – die Website fragt zur Laufzeit NIE die
+// externe Quelle ab, sondern immer nur diese Tabellen.
+//
+// isActive bedeutet "innerhalb von Autoklick24 nutzbar", NICHT "wird aktuell
+// produziert" – historische Modelle (Gebrauchtwagenmarkt!) bleiben aktiv.
+// sourceActive ist getrennt davon: false bedeutet nur "beim letzten Import
+// nicht mehr in der Quelle gefunden", der Datensatz wird dabei NIE hart
+// gelöscht (Referenzintegrität für bereits verknüpfte Inserate).
+// ---------------------------------------------------------------------------
+
+enum VehicleCatalogSource {
+  VEHICLES_DB
+  MANUAL
+  EXTERNAL_PROVIDER
+}
+
+model VehicleManufacturer {
+  id            String               @id @default(cuid())
+  slug          String               @unique
+  name          String
+  displayName   String?
+  country       String?
+  isActive      Boolean              @default(true)
+  isPopular     Boolean              @default(false)
+  source        VehicleCatalogSource @default(VEHICLES_DB)
+  sourceId      String?
+  sourceVersion String?
+  sourceActive  Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  aliases VehicleManufacturerAlias[]
+  models  VehicleModel[]
+
+  @@unique([source, sourceId])
+  @@index([isActive])
+  @@index([isPopular])
+  @@map("vehicle_manufacturers")
+}
+
+model VehicleManufacturerAlias {
+  id              String              @id @default(cuid())
+  manufacturerId  String
+  manufacturer    VehicleManufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime            @default(now())
+
+  @@unique([manufacturerId, alias])
+  @@index([normalizedAlias])
+  @@map("vehicle_manufacturer_aliases")
+}
+
+model VehicleModel {
+  id              String               @id @default(cuid())
+  manufacturerId  String
+  manufacturer    VehicleManufacturer  @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  slug            String
+  name            String
+  displayName     String?
+  isActive        Boolean              @default(true)
+  isPopular       Boolean              @default(false)
+  productionStart Int?
+  productionEnd   Int?
+  bodyTypes       String[]             @default([])
+  source          VehicleCatalogSource @default(VEHICLES_DB)
+  sourceId        String?
+  sourceVersion   String?
+  sourceActive    Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  aliases VehicleModelAlias[]
+
+  @@unique([manufacturerId, slug])
+  @@unique([source, sourceId])
+  @@index([manufacturerId, isActive])
+  @@map("vehicle_models")
+}
+
+model VehicleModelAlias {
+  id              String       @id @default(cuid())
+  modelId         String
+  model           VehicleModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime     @default(now())
+
+  @@unique([modelId, alias])
+  @@index([normalizedAlias])
+  @@map("vehicle_model_aliases")
+}

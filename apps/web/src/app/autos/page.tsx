@@ -1,7 +1,12 @@
 import { PagePlaceholder } from "@/components/ui/PagePlaceholder";
 import { Container } from "@/components/ui/Container";
-import { findMakeBySlug, findModelBySlug, FuelType } from "@autoklick24/types";
+import { FuelType } from "@autoklick24/types";
 import { parseVehicleSearchParams } from "@autoklick24/validation";
+import {
+  findManufacturerBySlug,
+  findModelBySlug,
+  resolveDisplayName,
+} from "@autoklick24/database";
 
 export const metadata = { title: "Autos kaufen" };
 
@@ -33,15 +38,15 @@ export default async function VehicleMarketplacePage({
   const rawParams = await searchParams;
   const filters = parseVehicleSearchParams(rawParams);
 
-  const make = filters.makeSlug ? findMakeBySlug(filters.makeSlug) : undefined;
+  const manufacturer = filters.makeSlug ? await findManufacturerBySlug(filters.makeSlug) : null;
   const model =
     filters.makeSlug && filters.modelSlug
-      ? findModelBySlug(filters.makeSlug, filters.modelSlug)
-      : undefined;
+      ? await findModelBySlug(filters.makeSlug, filters.modelSlug)
+      : null;
 
   const summary: string[] = [];
-  if (make) summary.push(`Marke: ${make.name}`);
-  if (model) summary.push(`Modell: ${model.name}`);
+  if (manufacturer) summary.push(`Marke: ${resolveDisplayName(manufacturer)}`);
+  if (model) summary.push(`Modell: ${resolveDisplayName(model)}`);
   if (filters.yearFrom) summary.push(`Erstzulassung ab ${filters.yearFrom}`);
   if (filters.mileageTo)
     summary.push(`Kilometerstand bis ${filters.mileageTo.toLocaleString("de-DE")} km`);

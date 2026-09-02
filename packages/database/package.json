@@ -10,9 +10,11 @@
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx prisma/seed.ts",
+    "vehicle-catalog:import": "tsx scripts/import-vehicle-catalog.ts",
     "studio": "prisma studio",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"(no lint configured yet)\""
+    "lint": "echo \"(no lint configured yet)\"",
+    "test": "vitest run"
   },
   "dependencies": {
     "@autoklick24/types": "workspace:*",
@@ -22,7 +24,8 @@
     "@types/node": "^22.10.5",
     "prisma": "^6.2.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.11"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

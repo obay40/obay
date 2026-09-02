@@ -1,6 +1,6 @@
 "use client";
 
-import { findMakeBySlug } from "@autoklick24/types";
+import { useVehicleModels } from "../hooks/useVehicleModels";
 import { Combobox } from "./Combobox";
 
 interface ModelComboboxProps {
@@ -11,7 +11,7 @@ interface ModelComboboxProps {
 }
 
 export function ModelCombobox({ makeSlug, value, onChange, className }: ModelComboboxProps) {
-  const make = makeSlug ? findMakeBySlug(makeSlug) : undefined;
+  const { models, loading } = useVehicleModels(makeSlug);
 
   return (
     <Combobox
@@ -19,14 +19,15 @@ export function ModelCombobox({ makeSlug, value, onChange, className }: ModelCom
       label="Modell"
       value={value}
       onChange={onChange}
-      items={make?.models ?? []}
+      items={models}
       placeholder="Alle Modelle"
       searchPlaceholder="Modell suchen"
       popularLabel="Beliebt"
       allLabel="Alle Modelle"
       emptyStateText="Keine Modelle gefunden"
-      disabled={!make}
+      disabled={!makeSlug}
       disabledHint="Zuerst Marke wählen"
+      loading={loading}
       className={className}
     />
   );

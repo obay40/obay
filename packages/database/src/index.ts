@@ -1,20 +1,5 @@
-import { PrismaClient } from "../generated/client/index";
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __autoklick24Prisma: PrismaClient | undefined;
-}
-
-/**
- * Ein einziger PrismaClient pro Prozess. Im Next.js-Dev-Server wird das
- * Modul bei Hot-Reload neu ausgewertet – ohne den globalThis-Cache würden
- * bei jedem Reload neue Connection-Pools entstehen.
- */
-export const prisma: PrismaClient = globalThis.__autoklick24Prisma ?? new PrismaClient();
-
-if (process.env["NODE_ENV"] !== "production") {
-  globalThis.__autoklick24Prisma = prisma;
-}
-
+export { prisma } from "./client";
 export * from "../generated/client/index";
 export * from "./password";
+export * from "./vehicle-catalog/queries";
+export * from "./vehicle-catalog/normalize";

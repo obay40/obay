@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { foldDiacritics, naturalCompare, normalizedSearchKey } from "@autoklick24/types";
 
 export interface ComboboxItem {
   slug: string;
   name: string;
-  popular?: boolean;
+  isPopular?: boolean;
+  /** Alternative Schreibweisen ("VW", "1er", …) – werden mitdurchsucht, aber nie angezeigt. */
+  aliases?: string[];
 }
 
 interface ComboboxProps {
@@ -21,11 +24,26 @@ interface ComboboxProps {
   emptyStateText: string;
   disabled?: boolean;
   disabledHint?: string;
+  loading?: boolean;
   className?: string;
+  /**
+   * Bei vielen Einträgen (Herstellerliste) werden die Nicht-Beliebten
+   * zusätzlich alphabetisch in Buchstaben-Abschnitte gruppiert (A, B, C, …),
+   * wie in der Aufgabenstellung vorgegeben. Bei kurzen Listen (z. B.
+   * Modelle) bleibt es bei der einfachen Liste.
+   */
+  groupAlphabetically?: boolean;
+}
+
+function firstLetter(name: string): string {
+  const folded = foldDiacritics(name).toUpperCase();
+  const match = folded.match(/[A-Z0-9]/);
+  return match ? match[0]! : "#";
 }
 
 /**
- * Durchsuchbares Auswahlfeld mit "Beliebt"/"Alle"-Gruppierung und voller
+ * Durchsuchbares Auswahlfeld mit "Beliebt"/"Alle"-Gruppierung, optionaler
+ * A-Z-Gruppierung, Natural-Sort (1er/2er/10er statt 1/10/2) und voller
  * Tastaturbedienung (Pfeiltasten, Enter, Escape, Klick außerhalb schließt).
  * Wird von MakeCombobox und ModelCombobox mit unterschiedlichen Daten
  * wiederverwendet, damit die Interaktionslogik nur einmal existiert.
@@ -43,7 +61,9 @@ export function Combobox({
   emptyStateText,
   disabled,
   disabledHint,
+  loading,
   className = "",
+  groupAlphabetically = false,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -52,14 +72,39 @@ export function Combobox({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selected = items.find((item) => item.slug === value);
-  const popularItems = useMemo(() => items.filter((item) => item.popular), [items]);
-  const filteredItems = useMemo(() => {
-    if (!query.trim()) return items;
-    const q = query.trim().toLowerCase();
-    return items.filter((item) => item.name.toLowerCase().includes(q));
-  }, [items, query]);
 
-  const visibleList = query.trim() ? filteredItems : items;
+  const sortedItems = useMemo(
+    () => [...items].sort((a, b) => naturalCompare(a.name, b.name)),
+    [items],
+  );
+  const popularItems = useMemo(() => sortedItems.filter((item) => item.isPopular), [sortedItems]);
+
+  const filteredItems = useMemo(() => {
+    if (!query.trim()) return sortedItems;
+    // Case-insensitive und tolerant gegenüber Umlauten/Sonderzeichen: "skoda"
+    // muss "Škoda" treffen, "e klasse" muss "E-Klasse" treffen. Aliase
+    // ("VW", "1er", "Q4 e-tron", …) werden mitdurchsucht, aber nie als
+    // eigener Treffer angezeigt – nur der echte Katalogname erscheint.
+    const q = normalizedSearchKey(query);
+    return sortedItems.filter((item) => {
+      if (normalizedSearchKey(item.name).includes(q)) return true;
+      return (item.aliases ?? []).some((alias) => normalizedSearchKey(alias).includes(q));
+    });
+  }, [sortedItems, query]);
+
+  const visibleList = query.trim() ? filteredItems : sortedItems;
+
+  const alphabeticalGroups = useMemo(() => {
+    if (!groupAlphabetically || query.trim()) return null;
+    const groups = new Map<string, ComboboxItem[]>();
+    for (const item of sortedItems) {
+      const letter = firstLetter(item.name);
+      const group = groups.get(letter) ?? [];
+      group.push(item);
+      groups.set(letter, group);
+    }
+    return [...groups.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  }, [groupAlphabetically, query, sortedItems]);
 
   useEffect(() => {
     if (!open) return;
@@ -149,6 +194,14 @@ export function Combobox({
     );
   }
 
+  function renderSectionLabel(text: string) {
+    return (
+      <li className="text-navy-400 px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide">
+        {text}
+      </li>
+    );
+  }
+
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <button
@@ -172,7 +225,13 @@ export function Combobox({
           {label}
         </span>
         <span className="text-navy-900 block truncate px-3 pb-2.5 pr-8 pt-0.5 text-sm font-medium">
-          {selected ? selected.name : disabled && disabledHint ? disabledHint : placeholder}
+          {selected
+            ? selected.name
+            : disabled && disabledHint
+              ? disabledHint
+              : loading
+                ? "Wird geladen…"
+                : placeholder}
         </span>
         <svg
           width="16"
@@ -221,25 +280,28 @@ export function Combobox({
             />
           </div>
 
-          <ul id={`${id}-listbox`} role="listbox" className="mt-2 max-h-64 overflow-y-auto">
+          <ul id={`${id}-listbox`} role="listbox" className="mt-2 max-h-72 overflow-y-auto">
             {visibleList.length === 0 && (
               <li className="text-navy-500 px-3 py-6 text-center text-sm">{emptyStateText}</li>
             )}
 
             {!query.trim() && popularItems.length > 0 && (
               <>
-                <li className="text-navy-400 px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide">
-                  {popularLabel}
-                </li>
+                {renderSectionLabel(popularLabel)}
                 {popularItems.map(renderItem)}
                 <li className="border-navy-100 my-2 border-t" role="presentation" />
-                <li className="text-navy-400 px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide">
-                  {allLabel}
-                </li>
+                {!alphabeticalGroups && renderSectionLabel(allLabel)}
               </>
             )}
 
-            {visibleList.map(renderItem)}
+            {alphabeticalGroups
+              ? alphabeticalGroups.map(([letter, groupItems]) => (
+                  <Fragment key={letter}>
+                    {renderSectionLabel(letter)}
+                    {groupItems.map(renderItem)}
+                  </Fragment>
+                ))
+              : visibleList.map(renderItem)}
           </ul>
         </div>
       )}

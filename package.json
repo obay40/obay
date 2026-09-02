@@ -18,7 +18,8 @@
     "db:generate": "pnpm --filter @autoklick24/database generate",
     "db:migrate": "pnpm --filter @autoklick24/database migrate",
     "db:seed": "pnpm --filter @autoklick24/database seed",
-    "db:studio": "pnpm --filter @autoklick24/database studio"
+    "db:studio": "pnpm --filter @autoklick24/database studio",
+    "vehicle-catalog:import": "pnpm --filter @autoklick24/database vehicle-catalog:import"
   },
   "devDependencies": {
     "prettier": "^3.4.2",
