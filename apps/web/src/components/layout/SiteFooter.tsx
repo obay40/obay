@@ -73,7 +73,7 @@ export function SiteFooter() {
         </div>
 
         <div className="border-navy-800 mt-12 flex flex-col items-start justify-between gap-4 border-t pt-6 sm:flex-row sm:items-center">
-          <Logo className="[&_span:last-child]:text-cyan-400 [&_span]:text-white" />
+          <Logo variant="light" />
           <p className="text-navy-400 text-xs">
             © {new Date().getFullYear()} Autoklick24. Alle Angaben ohne Gewähr. Rechtstexte sind
             Platzhalter und juristisch zu prüfen.
