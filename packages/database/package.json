@@ -11,6 +11,7 @@
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx prisma/seed.ts",
     "vehicle-catalog:import": "tsx scripts/import-vehicle-catalog.ts",
+    "mobile-de-catalog:import": "tsx scripts/import-mobile-de-catalog.ts",
     "studio": "prisma studio",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"(no lint configured yet)\"",

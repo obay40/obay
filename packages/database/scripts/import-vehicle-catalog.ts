@@ -181,7 +181,7 @@ async function importManufacturers(sourceMakes: SourceMake[], sourceVersion: str
   // Manuell gepflegte Hersteller (source: MANUAL) – aktuell leer, siehe overrides.ts.
   for (const manual of manualManufacturers) {
     const manufacturer = await prisma.vehicleManufacturer.upsert({
-      where: { slug: manual.slug },
+      where: { source_slug: { source: VehicleCatalogSource.MANUAL, slug: manual.slug } },
       update: {
         name: manual.name,
         country: manual.country ?? null,
@@ -342,7 +342,7 @@ async function importModels(
 
   // Manuell gepflegte Modelle (source: MANUAL) – aktuell leer, siehe overrides.ts.
   for (const manual of manualModels) {
-    const manufacturer = await prisma.vehicleManufacturer.findUnique({
+    const manufacturer = await prisma.vehicleManufacturer.findFirst({
       where: { slug: manual.manufacturerSlug },
     });
     if (!manufacturer) {

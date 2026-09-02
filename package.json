@@ -19,7 +19,8 @@
     "db:migrate": "pnpm --filter @autoklick24/database migrate",
     "db:seed": "pnpm --filter @autoklick24/database seed",
     "db:studio": "pnpm --filter @autoklick24/database studio",
-    "vehicle-catalog:import": "pnpm --filter @autoklick24/database vehicle-catalog:import"
+    "vehicle-catalog:import": "pnpm --filter @autoklick24/database vehicle-catalog:import",
+    "mobile-de-catalog:import": "pnpm --filter @autoklick24/database mobile-de-catalog:import"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

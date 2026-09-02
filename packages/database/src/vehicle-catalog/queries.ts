@@ -8,18 +8,18 @@
  * Produktionsstatus) und sourceActive schließt Datensätze aus, die beim
  * letzten Import nicht mehr in der Quelle gefunden wurden.
  *
- * PKW-Kuratierung: die Funktionen hier liefern per Default NUR den
- * kuratierten PKW-Katalog (Hersteller category=PASSENGER_CAR/MULTI_CATEGORY,
- * Modell isVisibleInPassengerCarSearch=true) – siehe
- * packages/database/src/vehicle-catalog/overrides.ts und
- * docs/vehicle-catalog-curation.md. Die vollständigen Rohdaten bleiben in
- * der Datenbank erhalten (nichts wird gelöscht) und sind über die
- * `category`/`vehicleCategory`-Spalten weiterhin abfragbar, z. B. für einen
- * künftigen Admin-/Debug-Zugriff.
+ * AKTIVE QUELLE: mobile.de (source=MOBILE_DE, siehe
+ * packages/database/vendor/mobile-de/ und docs/vehicle-data-sources.md).
+ * Der vorherige VehiclesDB-Import (source=VEHICLES_DB) bleibt vollständig in
+ * der Datenbank erhalten – nichts wird gelöscht –, ist aber NICHT mehr Teil
+ * der Standardsicht. Alle Funktionen hier filtern deshalb explizit auf
+ * ACTIVE_CATALOG_SOURCE, nicht nur auf isActive/category.
  */
 import { prisma } from "../client";
+import { VehicleCatalogSource } from "../../generated/client/index";
 import { naturalCompare, normalizedSearchKey } from "./normalize";
 
+export const ACTIVE_CATALOG_SOURCE = VehicleCatalogSource.MOBILE_DE;
 const PASSENGER_CAR_MANUFACTURER_CATEGORIES = ["PASSENGER_CAR", "MULTI_CATEGORY"] as const;
 
 export interface VehicleManufacturerRecord {
@@ -80,6 +80,7 @@ function sortByDisplayName<T extends { name: string; displayName: string | null 
 export async function listActiveManufacturers(): Promise<VehicleManufacturerRecord[]> {
   const rows = await prisma.vehicleManufacturer.findMany({
     where: {
+      source: ACTIVE_CATALOG_SOURCE,
       isActive: true,
       sourceActive: true,
       category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
@@ -95,6 +96,7 @@ export async function findManufacturerBySlug(
   const row = await prisma.vehicleManufacturer.findFirst({
     where: {
       slug,
+      source: ACTIVE_CATALOG_SOURCE,
       isActive: true,
       sourceActive: true,
       category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
@@ -109,11 +111,13 @@ export async function listActiveModelsForManufacturerSlug(
 ): Promise<VehicleModelRecord[]> {
   const rows = await prisma.vehicleModel.findMany({
     where: {
+      source: ACTIVE_CATALOG_SOURCE,
       isActive: true,
       sourceActive: true,
       isVisibleInPassengerCarSearch: true,
       manufacturer: {
         slug: manufacturerSlug,
+        source: ACTIVE_CATALOG_SOURCE,
         isActive: true,
         sourceActive: true,
         category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
@@ -131,11 +135,13 @@ export async function findModelBySlug(
   const row = await prisma.vehicleModel.findFirst({
     where: {
       slug: modelSlug,
+      source: ACTIVE_CATALOG_SOURCE,
       isActive: true,
       sourceActive: true,
       isVisibleInPassengerCarSearch: true,
       manufacturer: {
         slug: manufacturerSlug,
+        source: ACTIVE_CATALOG_SOURCE,
         isActive: true,
         sourceActive: true,
         category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
@@ -148,16 +154,16 @@ export async function findModelBySlug(
 
 /**
  * Findet einen Hersteller per Slug, exaktem Alias oder (diakritikatolerant)
- * Namen – z. B. "VW" → Volkswagen, "Mercedes" → Mercedes-Benz, "Skoda" →
- * Škoda. Beweist, dass das Alias-System (siehe docs/vehicle-data-sources.md)
- * tatsächlich funktioniert, nicht nur architektonisch vorgesehen ist.
- * Sucht nur innerhalb des kuratierten PKW-Katalogs (siehe Modulkommentar).
+ * Namen – z. B. "Skoda" → Škoda, "Citroen" → Citroën. Beweist, dass die
+ * Diakritika-Faltung tatsächlich funktioniert, nicht nur architektonisch
+ * vorgesehen ist. Sucht nur innerhalb der aktiven Quelle (siehe Modulkommentar).
  */
 export async function resolveManufacturerByTerm(
   term: string,
 ): Promise<VehicleManufacturerRecord | null> {
   const bySlugOrAlias = await prisma.vehicleManufacturer.findFirst({
     where: {
+      source: ACTIVE_CATALOG_SOURCE,
       isActive: true,
       sourceActive: true,
       category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },
@@ -172,18 +178,20 @@ export async function resolveManufacturerByTerm(
   return all.find((manufacturer) => normalizedSearchKey(resolveDisplayName(manufacturer)) === key) ?? null;
 }
 
-/** Modell-Gegenstück zu resolveManufacturerByTerm, z. B. "1er" → BMW "1 Series". */
+/** Modell-Gegenstück zu resolveManufacturerByTerm, z. B. "M340i" → BMW M-Modelle "M340i". */
 export async function resolveModelByTerm(
   manufacturerSlug: string,
   term: string,
 ): Promise<VehicleModelRecord | null> {
   const bySlugOrAlias = await prisma.vehicleModel.findFirst({
     where: {
+      source: ACTIVE_CATALOG_SOURCE,
       isActive: true,
       sourceActive: true,
       isVisibleInPassengerCarSearch: true,
       manufacturer: {
         slug: manufacturerSlug,
+        source: ACTIVE_CATALOG_SOURCE,
         isActive: true,
         sourceActive: true,
         category: { in: [...PASSENGER_CAR_MANUFACTURER_CATEGORIES] },

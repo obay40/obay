@@ -5,57 +5,193 @@ Dieses Dokument beschreibt, woher der Autoklick24-Fahrzeugkatalog
 und wie er importiert/aktualisiert wird. Es ist die verbindliche Antwort auf
 "Woher kommt dieser Datensatz?".
 
-## Primärquelle
+**Kurzfassung:** Die aktive Quelle ist seit 2026-09-02 **mobile.de**
+(`source: MOBILE_DE`, siehe unten). Der zuvor genutzte VehiclesDB-Import
+(`source: VEHICLES_DB`) bleibt vollständig in der Datenbank erhalten –
+nichts wurde gelöscht –, ist aber nicht mehr Teil der Standardsicht
+(`queries.ts` filtert alle Lesezugriffe explizit auf `source: MOBILE_DE`).
+Grund für den Wechsel: Der Auftraggeber hat die konkreten Marken-/Modelldaten
+der VehiclesDB-Quelle abgelehnt und stattdessen eine selbst erhobene
+mobile.de-Marken-/Modell-Hierarchie vorgegeben.
+
+## Aktive Quelle: mobile.de
+
+- **Herkunft:** manuell erhobene Abschrift der öffentlichen
+  mobile.de-Gebrauchtwagen-Sitemap (Automarken und die dort gelisteten
+  Modelle), ergänzt um das offizielle mobile.de Make/Model-Changelog
+  (`services.mobile.de`) für neuere, in der Sitemap noch nicht sichtbare
+  Car-Marken.
+  - Sitemap: <https://www.mobile.de/sitemap/gebrauchtwagen/>
+  - Changelog: <https://services.mobile.de/manual/makemodelupdate.html>
+- **Scope:** ausschließlich der Auto-/Car-Bereich von mobile.de. Es wurden
+  **keine** separaten mobile.de-Portale für Motorräder, E-Bikes, LKW oder
+  Wohnmobile als Quelle verwendet (siehe "Hinweise & Quellen"-Sheet der
+  vendorten Excel-Datei). Einzelne Vans/Pick-ups, die mobile.de selbst unter
+  "Car" führt, bleiben enthalten – dieselbe Nutzfahrzeug-/PKW-Grauzone wie
+  beim vorherigen VehiclesDB-Import (siehe
+  [`vehicle-catalog-curation.md`](./vehicle-catalog-curation.md)).
+- **Stand/Abrufdatum:** 2026-09-02
+- **Umfang bei Abruf:** 153 Hersteller (inkl. 2 nur im Changelog genannte,
+  ohne eigene Modellzeile: LEVC, Zhidou), 2.572 rohe Modellzeilen
+- **Kein direkter API-/XML-Export:** Die Datei bildet die öffentlich
+  sichtbare Sitemap plus die ausgewerteten Changelog-Ergänzungen ab, ist aber
+  kein Export der internen mobile.de Reference-Data-API.
+- **Lizenz:** mobile.de veröffentlicht für diese öffentlich zugänglichen
+  Sitemap-/Referenzseiten keine explizite Datenlizenz. Es handelt sich um
+  eine faktische Auflistung (Marken-/Modellnamen), keine urheberrechtlich
+  geschützte Datenbank im Sinne einer CC-Lizenz wie bei VehiclesDB. Die Quelle
+  wird trotzdem durchgängig benannt (dieses Dokument, Commit-Historie,
+  vendorte Rohdatei).
+
+### Rohdaten-Ablage
+
+```
+packages/database/vendor/mobile-de/
+  mobile-de-automarken-modelle-2026-09-02.xlsx   (Originaldatei, unverändert)
+  catalog.json                                    (daraus extrahiert: {marke, modellgruppe, modell, ebene, anzeige, quelletyp, quelleUrl}[])
+```
+
+### Modellgruppen-Hierarchie (Marke → Modellgruppe → Modell)
+
+mobile.de führt für **6 Marken** eine zweistufige Hierarchie: BMW, Ford,
+Lexus, MINI, Mercedes-Benz, Porsche. Beispiel: Mercedes-Benz "B-Klasse" ist
+eine Modellgruppe, "B 180" darunter ein konkretes Modell (Motorisierung).
+Bei allen anderen 147 Marken ist jede Zeile bereits ein flaches Einzelmodell.
+
+Eine 1:1-Übernahme jeder Zeile als eigenständiges `VehicleModel` würde die
+Modellauswahl mit hunderten Motorisierungscodes zumüllen (BMW hätte z. B.
+statt ~50 sauberen Baureihen 173 Einträge wie "114", "320", "M340i" statt
+"1er"/"3er"). Deshalb gilt für diese 6 Marken das **"Modell vs.
+Variante"-Prinzip**: pro Baureihe entsteht genau **ein** kanonisches
+`VehicleModel` (z. B. "1er", "C-Klasse", "911"), die einzelnen
+Motorisierungs-/Trim-Codes werden als **Aliase** angehängt (durchsuchbar,
+aber nicht als eigene Zeile in der Auswahl sichtbar).
+
+Modellgruppen, die mehrere **echte, unterschiedliche** Nameplates unter
+einem mobile.de-Sammelbegriff bündeln (nicht nur Motorisierungen einer
+Baureihe), werden stattdessen anhand ihrer Kind-Zeilen aufgesplittet:
+
+- BMW "X-Reihe" → X1, X2, X3, X4, X5, X6, X7, XM (je eigenständiges Modell)
+- BMW "Z-Reihe" → Z1, Z3, Z4, Z8
+- BMW "M-Modelle" → M2, M3, M4, M5, M6, M8 (M-Performance-Trims wie M135/
+  M340i bleiben Aliase der jeweiligen Basisbaureihe)
+- Ford "Tourneo (alle)" → Tourneo, Grand Tourneo, Tourneo Connect, Tourneo
+  Courier, Tourneo Custom
+
+Zusätzliche, in den mobile.de-Rohdaten dokumentierte Sonderfälle (u. a. BMW
+8er und MINI Cooper/One/Aceman ohne eigene Modellgruppen-Zeile, Mercedes AMG
+GT/T-Klasse-Konsolidierung, Ford "Model a/b/t"-Schreibkorrektur, diverse
+unspezifische Sammelwerte wie BMW "Sondermodell" oder generische
+"Other"/"OTHER"-Platzhalter) sind vollständig, mit Begründung je Fall, in
+[`packages/database/src/vehicle-catalog/mobile-de-groupings.ts`](../packages/database/src/vehicle-catalog/mobile-de-groupings.ts)
+dokumentiert.
+
+### Importprozess
+
+Script: [`packages/database/scripts/import-mobile-de-catalog.ts`](../packages/database/scripts/import-mobile-de-catalog.ts)
+(`pnpm mobile-de-catalog:import`)
+
+1. `catalog.json` einlesen
+2. Modellgruppen-Hierarchie auflösen (siehe oben) anhand von
+   `mobile-de-groupings.ts`: Zuordnung Rohwert → kanonisches Modell,
+   Split-Modellgruppen-Wrapper überspringen, unspezifische Sammelwerte
+   ausschließen, Nutzfahrzeug-Modell-Overrides anwenden
+3. Hersteller-Kategorie-Overrides anwenden (reine Nutzfahrzeugmarken wie
+   Barkas/Piaggio/MAN/Iveco trotz "Auto/Car"-Scoping bei mobile.de; echte
+   Dubletten wie "Bovensiepen" = ALPINA ausblenden)
+4. Datenbank aktualisieren: `upsert` je `(source, sourceId)`, Aliase je
+   kanonischem Modell synchronisieren. Datensätze, die beim aktuellen Import
+   fehlen, werden **nicht gelöscht**, sondern auf `sourceActive = false`
+   gesetzt
+5. Importstatistik ausgeben (importiert/aktualisiert/unverändert/übersprungen/
+   Warnungen/Fehler)
+
+### PKW-Kuratierung
+
+mobile.de liefert bereits nahezu ausschließlich Auto/Car-Daten (siehe Scope
+oben). Ein systematischer Stichprobenscan gegen bekannte LKW-/Wohnmobil-/
+Motorrad-Begriffe über den vollständigen Datensatz ergab nur wenige echte
+Treffer, die konsistent mit der bereits im VehiclesDB-Import getroffenen
+Einstufung kuratiert wurden (siehe
+[`vehicle-catalog-curation.md`](./vehicle-catalog-curation.md) für die
+vollständige Methodik):
+
+- **Barkas** (COMMERCIAL_VEHICLE) – ehemaliger DDR-Nutzfahrzeughersteller,
+  einziges Modell "B1000" ist ein Kleintransporter
+- **Piaggio** (COMMERCIAL_VEHICLE) – nur "Ape"/"Ape TM" (Kleintransporter)
+  und "Porter" (Kleinlaster), kein PKW
+- **MAN** (TRUCK) – reiner LKW-Hersteller, einziges Modell "TGE" ist ein
+  Nutzfahrzeug
+- **Iveco** (TRUCK) – reiner LKW-Hersteller, einziges Modell "Massif" ist ein
+  Nutzfahrzeug-Geländewagen auf LKW-Chassis-Basis
+- **Bovensiepen** (ausgeblendet, Dublette) – bürgerlicher Name der Alpina
+  Burkard Bovensiepen GmbH & Co. KG, bereits vollständig unter "ALPINA"
+  vorhanden
+
+Alle vier Zuordnungen sind mit Begründung in
+`mobile-de-groupings.ts` (`MANUFACTURER_CATEGORY_OVERRIDES`,
+`MANUFACTURER_HIDDEN_DUPLICATES`) dokumentiert.
+
+### Bekannte Lücken (Stand 2026-09-02)
+
+- **LEVC**, **Zhidou** – nur im Changelog-Sheet als Marke genannt, aber ohne
+  eine einzige Modellzeile in der ausgewerteten Sitemap. Erscheinen als
+  Hersteller, liefern aber (korrekt) eine leere Modellauswahl.
+
+## Frühere Quelle (inaktiv): VehiclesDB
+
+Bis 2026-09-02 aktiv, seither vollständig in der Datenbank erhalten
+(`source: VEHICLES_DB`), aber nicht mehr Teil der von `queries.ts`
+gelieferten Standardsicht.
 
 - **Projekt:** [VehiclesDB](https://vehiclesdb.com) ([GitHub: `vehiclesdb/vehiclesdb`](https://github.com/vehiclesdb/vehiclesdb))
 - **Verwendete Dateien:** `catalog/car/makes.json`, `catalog/car/models.json`
-  (nur Fahrzeugtyp `car` – Motorräder, Mopeds, Busse, LKW werden bewusst
-  **nicht** importiert; Transporter/Vans (`kind: van`) werden getrennt
-  behandelt und sind aktuell noch nicht importiert, siehe „Bekannte
-  Lücken/Nicht-Ziele" unten)
-- **Dataset-Version:** `2026.08.2` (`manifest.json` / `VERSION` im Quell-Repo,
-  Build vom 2026-08-02)
-- **Abrufdatum:** 2026-09-02
+- **Dataset-Version:** `2026.08.2`, Abrufdatum 2026-09-02
 - **Umfang bei Abruf:** 277 PKW-Hersteller, 4.895 PKW-Modelle
-- **Herkunft der Rohdaten:** amtliche Zulassungs-/Typgenehmigungs-/
-  Statistikregister aus 14 Ländern (DE, NL, GB, ES, FI, LU, IE, US, CA, NZ,
-  MY, TH, UA, AR); jedes Modell ist durch mindestens zwei unabhängige
-  Quellen belegt (siehe `SOURCES.md` im Quell-Repo)
+- **Lizenz:** CC BY 4.0 (siehe
+  [`packages/database/vendor/vehiclesdb/ATTRIBUTION.md`](../packages/database/vendor/vehiclesdb/ATTRIBUTION.md)
+  und [`LICENSE`](../packages/database/vendor/vehiclesdb/LICENSE); beide
+  Dateien bleiben unverändert im Repository, da die Attribution laut
+  Lizenzbedingungen nicht entfernt werden darf, auch wenn die Quelle
+  inaktiv ist)
+- **Importer:** [`packages/database/scripts/import-vehicle-catalog.ts`](../packages/database/scripts/import-vehicle-catalog.ts)
+  (`pnpm vehicle-catalog:import`) – funktioniert weiterhin, aktualisiert aber
+  nur die inaktive Quelle
+- **Bekannte, damals dokumentierte Lücken:** Polestar 1, Dacia Lodgy, NIO
+  EL7, Volkswagen Multivan (siehe Git-Historie dieses Dokuments für Details) –
+  gegenstandslos, seit diese Quelle nicht mehr aktiv ist.
 
-## Lizenz
+## Datenherkunft je Datensatz
 
-Der VehiclesDB-Datensatz (`catalog/**`, `dist/**`, `manifest.json`) steht
-unter **CC BY 4.0**. Die Upstream-Register behalten ihre eigenen Lizenzen
-(u. a. CC0-1.0, OGL-UK-3.0, OGL-Canada-2.0, DL-DE-BY-2.0) – diese Hinweise
-dürfen laut Lizenzbedingungen nicht entfernt werden.
+Jeder `VehicleManufacturer`/`VehicleModel` trägt `source`, `sourceId` und
+`sourceVersion`:
 
-Der Code des VehiclesDB-Repositories (Scripts, Workflows) ist MIT-lizenziert
-und wird von Autoklick24 nicht übernommen (nur die Datendateien).
+- `source: MOBILE_DE` – **aktive Quelle**, aus obigem mobile.de-Import,
+  `sourceId` = `slugify(Marke)` bzw. `slugify(Marke)/slugify(kanonisches Modell)`
+  (z. B. `"bmw"`, `"bmw/3er"`)
+- `source: VEHICLES_DB` – frühere Quelle, vollständig erhalten aber inaktiv,
+  `sourceId` = VehiclesDB-`id` (z. B. `"bmw"`, `"bmw/3-series"`)
+- `source: MANUAL` – von Autoklick24 manuell gepflegt, `sourceId` ist `null`
+- `source: EXTERNAL_PROVIDER` – vorgesehen für einen künftigen kommerziellen
+  Fahrzeugdaten-Provider, aktuell ungenutzt
 
-### Notwendige Attribution
-
-> Vehicle data by VehiclesDB (vehiclesdb.com), CC-BY 4.0, built from
-> official public registers – see ATTRIBUTION.md for source notices.
-
-Die vollständigen, je Release generierten Quellenhinweise liegen unverändert
-in [`packages/database/vendor/vehiclesdb/ATTRIBUTION.md`](../packages/database/vendor/vehiclesdb/ATTRIBUTION.md),
-der Lizenztext in [`packages/database/vendor/vehiclesdb/LICENSE`](../packages/database/vendor/vehiclesdb/LICENSE).
-Beide Dateien sind 1:1-Kopien aus dem Quell-Repository und dürfen nicht
-verändert oder entfernt werden. Eine öffentliche Credits-/Datenquellen-Seite
-für die Autoklick24-Website ist vorzubereiten, sobald der Fahrzeugkatalog live
-für Endnutzer sichtbar ist.
+`VehicleManufacturer.slug` ist **nicht** global eindeutig, sondern nur je
+`source` (`@@unique([source, slug])`, siehe `schema.prisma`) – derselbe Slug
+(z. B. `"bmw"`) existiert gleichzeitig unter `VEHICLES_DB` und `MOBILE_DE`.
+Alle Lesefunktionen in `queries.ts` filtern deshalb immer zusätzlich nach
+`source`, sodass Nutzer nie eine Kollision sehen.
 
 ## Warum kein Live-Zugriff zur Laufzeit?
 
-Die Website fragt beim Öffnen des Marken-/Modell-Dropdowns **nicht** die
-VehiclesDB-GitHub-Quelle ab. Stattdessen:
+Die Website fragt beim Öffnen des Marken-/Modell-Dropdowns **nicht** live bei
+mobile.de oder VehiclesDB ab. Stattdessen:
 
 ```
-VehiclesDB (GitHub, Version 2026.08.2)
-        ↓  (einmalig, manuell ausgelöst)
-packages/database/vendor/vehiclesdb/car/*.json   (unveränderte Rohkopie, in Git versioniert)
-        ↓  pnpm vehicle-catalog:import
-Postgres (VehicleManufacturer / VehicleModel / *Alias)
+mobile.de (Sitemap + Changelog, Stand 2026-09-02)
+        ↓  (einmalig, manuell erhoben)
+packages/database/vendor/mobile-de/catalog.json   (Rohkopie, in Git versioniert)
+        ↓  pnpm mobile-de-catalog:import
+Postgres (VehicleManufacturer / VehicleModel / *Alias, source=MOBILE_DE)
         ↓
 /api/v1/vehicle-manufacturers (gecacht)
         ↓
@@ -63,118 +199,15 @@ Website (später iOS/Android)
 ```
 
 Damit ist Autoklick24 zu jedem Zeitpunkt mit dem zuletzt erfolgreich
-importierten eigenen Katalog lauffähig, auch wenn VehiclesDB nicht
-erreichbar ist.
-
-## Importprozess
-
-Script: [`packages/database/scripts/import-vehicle-catalog.ts`](../packages/database/scripts/import-vehicle-catalog.ts)
-(`pnpm vehicle-catalog:import`)
-
-1. Vendorte `makes.json`/`models.json` einlesen
-2. Gegen erwartetes Schema validieren
-3. Autoklick24-Overrides anwenden (`packages/database/src/vehicle-catalog/overrides.ts`):
-   Anzeigenamen, zusätzliche Aliase, Ausblendungen – **ohne** die Rohdaten zu
-   verändern
-4. Hersteller-/Modellnamen normalisieren (Slug, Diakritika-Faltung für die
-   Suche)
-5. Dubletten anhand des normalisierten Namens erkennen
-6. Slugs erzeugen (stabil, SEO-tauglich)
-7. Datenbank aktualisieren: `upsert` je `(source, sourceId)`. Datensätze, die
-   beim aktuellen Import in der Quelle fehlen, werden **nicht gelöscht**,
-   sondern auf `sourceActive = false` gesetzt (Referenzintegrität für bereits
-   verknüpfte Fahrzeuginserate)
-8. Importstatistik ausgeben (importiert/aktualisiert/unverändert/Warnungen/Fehler)
-9. Fehler/Auffälligkeiten protokollieren
-
-### Update-Strategie
-
-Ein künftiges Update (`pnpm vehicle-catalog:update`, noch nicht automatisiert)
-folgt demselben Ablauf wie oben, plus vorgeschaltet: neue Release-Version aus
-VehiclesDB vendoren → Diff gegen den aktuellen Stand erzeugen und anzeigen
-(neue/umbenannte/upstream entfernte Datensätze) → erst nach Prüfung
-übernehmen. Es gibt **keine** automatische Produktionsänderung ohne diesen
-Zwischenschritt.
-
-## Datenherkunft je Datensatz
-
-Jeder `VehicleManufacturer`/`VehicleModel` trägt `source`, `sourceId` und
-`sourceVersion`:
-
-- `source: VEHICLES_DB` – aus obigem Import, `sourceId` = VehiclesDB-`id`
-  (z. B. `"bmw"`, `"bmw/3-series"`)
-- `source: MANUAL` – von Autoklick24 manuell gepflegt (z. B. künftige
-  Admin-Ergänzungen), `sourceId` ist `null`
-- `source: EXTERNAL_PROVIDER` – vorgesehen für einen künftigen kommerziellen
-  Fahrzeugdaten-Provider, aktuell ungenutzt
-
-## Aliase
-
-Zwei Ebenen, beide durchsuchbar:
-
-1. **Von VehiclesDB veröffentlichte Aliase** (`makes.json[].aliases`, z. B.
-   `volkswagen → ["VW", "Vdub"]`, `mercedes-benz → ["Merc", "Benz", "MB"]`) –
-   werden 1:1 übernommen.
-2. **Autoklick24-Overrides** (`overrides.ts`) für Fälle, die die Quelle nicht
-   abdeckt, u. a.:
-   - Deutsche Baureihen-Bezeichnungen, wo die Quelle englische Namen führt
-     (BMW `"1er"` → `1 Series` … `"8er"` → `8 Series`; Mercedes `"A-Klasse"`
-     → `A-Class` … `"V-Klasse"` → `V-Class`)
-   - Audi `"Q4 e-tron"` → `Q4`, `"Q6 e-tron"` → `Q6` (die Quelle führt den
-     Antriebszusatz nicht separat)
-   - `"Mercedes"`/`"Mercedes Benz"` zusätzlich zu den bereits vorhandenen
-     `Merc`/`Benz`/`MB`
-   - Markenübergreifend: `"KGM"` ↔ `"SsangYong"` (echte Markenumbenennung
-     2023; beide bleiben als eigenständige Hersteller bestehen, da die Quelle
-     unterschiedliche Zulassungshistorien führt – Suche funktioniert in
-     beide Richtungen)
-   - MINI `"Hatch"` → `Cooper` (UK-Marketingbegriff für die 3-Türer-Baureihe,
-     keine eigene Nameplate in der Quelle)
-
-   Reine Diakritika-/Schreibvarianten (`Škoda`/`Skoda`, `Citroën`/`Citroen`,
-   `CUPRA`/`Cupra`, `MINI`/`Mini`) benötigen **keinen** expliziten Alias-Eintrag:
-   die Suche normalisiert (Kleinschreibung + NFKD-Diakritika-Faltung) sowohl
-   Katalogname als auch Sucheingabe.
-
-## Bekannte Lücken / Nicht-Ziele (Stand Dataset 2026.08.2)
-
-Beim Abgleich der vom Auftraggeber vorgegebenen Spot-Check-Liste (330
-Modelle über ~40 Hersteller) gegen die echten Rohdaten wurden folgende
-**echte** Lücken identifiziert, für die es **keine** Alias-/Klassifikations-
-Erklärung gibt. Sie wurden **nicht** manuell aus dem Gedächtnis ergänzt,
-sondern bleiben bis zu einer verifizierten Quelle bewusst offen:
-
-- **Polestar 1** – Nischen-Kleinserie (ca. 1.500 Fahrzeuge weltweit,
-  2019–2021), unterhalb der Erfassungsschwelle der 14 abgedeckten Register.
-- **Dacia Lodgy** – 2022 eingestellt, nie im Vereinigten Königreich verkauft,
-  in keinem der abgedeckten Register mit ausreichender Zulassungszahl
-  vertreten.
-- **NIO EL7** – die Quelle führt NIO `EL6`/`EL8`/`ET5`/`ET7`, aber (noch)
-  kein `EL7` in den abgedeckten Märkten.
-- **Volkswagen Multivan** – fehlt vollständig in der Quelle, auch unter
-  `kind: van` (geprüft) – nicht falsch klassifiziert, schlicht nicht
-  katalogisiert.
-
-Diese vier Fahrzeuge sind in Autoklick24 aktuell nur über den Freitext-
-Fallback „Sonstige Marke"/„Sonstiges Modell" erfassbar. Eine spätere manuelle
-Ergänzung (`source: MANUAL`) ist über das Datenmodell vorbereitet, aber
-bewusst nicht ungeprüft vorgenommen worden.
-
-**Nicht importiert (bewusst, siehe Aufgabenstellung):** Transporter/Vans
-(`kind: van`, u. a. VW Caddy/Transporter, Mercedes Vito/Sprinter,
-Renault Kangoo/Trafic, Citroën Berlingo/Jumpy, Fiat Ducato) – diese sind in
-der Quelle korrekt als eigener `kind` von PKW getrennt und werden in einem
-späteren Schritt eigenständig importiert, sobald Autoklick24 diese Fahrzeug-
-klasse anbietet. Ebenso nicht importiert: Motorräder, Mopeds, Busse, LKW.
-
-**PKW-Kuratierung (Wohnmobile, Sonderfahrzeuge, Marken-Fehlzuordnungen,
-interne Typcodes innerhalb der importierten `car`-Daten):** siehe eigenes
-Dokument [`vehicle-catalog-curation.md`](./vehicle-catalog-curation.md).
+importierten eigenen Katalog lauffähig, auch wenn mobile.de nicht erreichbar
+ist.
 
 ## Reproduzierbarkeit
 
 Die verwendeten Rohdateien liegen unverändert in
+[`packages/database/vendor/mobile-de/`](../packages/database/vendor/mobile-de/)
+(aktive Quelle) bzw.
 [`packages/database/vendor/vehiclesdb/`](../packages/database/vendor/vehiclesdb/)
-und sind Teil des Git-Repositories – ein Import ist damit jederzeit
-deterministisch reproduzierbar, unabhängig vom aktuellen Stand des externen
-GitHub-Repositories.
+(frühere Quelle) und sind Teil des Git-Repositories – ein Import ist damit
+jederzeit deterministisch reproduzierbar, unabhängig vom aktuellen Stand der
+externen Quellen.

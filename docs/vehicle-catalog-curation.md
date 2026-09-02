@@ -1,5 +1,20 @@
 # Fahrzeugkatalog-Kuratierung (PKW-Filter)
 
+> **Hinweis (Stand 2026-09-02):** Die aktive Katalogquelle ist inzwischen
+> mobile.de (`source: MOBILE_DE`, siehe
+> [`vehicle-data-sources.md`](./vehicle-data-sources.md)), nicht mehr
+> VehiclesDB. Der VehiclesDB-Import und die unten beschriebenen
+> `overrides.ts`-Mechanismen bleiben vollständig erhalten und funktionsfähig,
+> wirken aber nur noch auf die inaktive VehiclesDB-Quelle. Die entsprechende
+> Kuratierung der aktiven mobile.de-Quelle (Modellgruppen-Hierarchie,
+> Nutzfahrzeug-Marken-Overrides, Dubletten) ist in
+> [`packages/database/src/vehicle-catalog/mobile-de-groupings.ts`](../packages/database/src/vehicle-catalog/mobile-de-groupings.ts)
+> und im Abschnitt "PKW-Kuratierung" von `vehicle-data-sources.md`
+> dokumentiert. Die Methodik (zwei Ebenen, nichts löschen, alles über
+> Zusatzfelder/Overrides mit Begründung) ist identisch – nur der Mechanismus
+> je Quelle unterscheidet sich. Der Rest dieses Dokuments beschreibt die
+> VehiclesDB-spezifische Umsetzung als historische Referenz.
+
 Ergänzt [`vehicle-data-sources.md`](./vehicle-data-sources.md) um die zweite
 Stufe der Pipeline: aus dem vollständigen VehiclesDB-Import wird der
 kuratierte **Autoklick24-PKW-Katalog**, den die normale Fahrzeugsuche zeigt.

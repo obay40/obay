@@ -13,7 +13,7 @@
  * wie ein Nutzer ihn eintippen würde ("1er", "Skoda", "VW", …).
  */
 import { describe, expect, it } from "vitest";
-import { resolveManufacturerByTerm, resolveModelByTerm } from "../queries";
+import { listActiveModelsForManufacturerSlug, resolveManufacturerByTerm, resolveModelByTerm } from "../queries";
 
 const SPOT_CHECKS: Record<string, string[]> = {
   Volkswagen: [
@@ -57,19 +57,19 @@ const SPOT_CHECKS: Record<string, string[]> = {
     "C-Klasse",
     "E-Klasse",
     "S-Klasse",
-    "CLA",
-    "CLS",
-    "GLA",
-    "GLB",
-    "GLC",
-    "GLE",
-    "GLS",
+    "CLA-Klasse",
+    "CLS-Klasse",
+    "GLA-Klasse",
+    "GLB-Klasse",
+    "GLC-Klasse",
+    "GLE-Klasse",
+    "GLS-Klasse",
     "G-Klasse",
     "EQA",
     "EQB",
     "EQE",
     "EQS",
-    "SL",
+    "SL-Klasse",
     "V-Klasse",
   ],
   Audi: [
@@ -91,14 +91,14 @@ const SPOT_CHECKS: Record<string, string[]> = {
     "R8",
     "e-tron GT",
   ],
-  Porsche: ["718", "911", "Taycan", "Panamera", "Macan", "Cayenne"],
-  Opel: ["Adam", "Astra", "Corsa", "Insignia", "Mokka", "Crossland", "Grandland", "Zafira"],
+  Porsche: ["Boxster", "Cayman", "911", "Taycan", "Panamera", "Macan", "Cayenne"],
+  Opel: ["Adam", "Astra", "Corsa", "Insignia", "Mokka", "Crossland (X)", "Grandland (X)", "Zafira"],
   Ford: ["Fiesta", "Focus", "Mondeo", "Mustang", "Puma", "Kuga", "Explorer", "S-Max", "Galaxy"],
   Škoda: ["Fabia", "Scala", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Enyaq", "Elroq"],
   SEAT: ["Ibiza", "Leon", "Ateca", "Arona", "Tarraco", "Alhambra"],
   CUPRA: ["Ateca", "Born", "Formentor", "Leon", "Tavascan", "Terramar"],
   Toyota: [
-    "Aygo",
+    "Aygo (X)",
     "Yaris",
     "Corolla",
     "Prius",
@@ -110,11 +110,23 @@ const SPOT_CHECKS: Record<string, string[]> = {
     "GR86",
   ],
   Hyundai: ["i10", "i20", "i30", "Kona", "Tucson", "Santa Fe", "Ioniq", "Ioniq 5", "Ioniq 6"],
-  Kia: ["Picanto", "Rio", "Ceed", "ProCeed", "Niro", "Sportage", "Sorento", "Stinger", "EV3", "EV6", "EV9"],
+  Kia: [
+    "Picanto",
+    "Rio",
+    "cee'd / Ceed",
+    "pro cee'd / ProCeed",
+    "Niro",
+    "Sportage",
+    "Sorento",
+    "Stinger",
+    "EV3",
+    "EV6",
+    "EV9",
+  ],
   Tesla: ["Model S", "Model 3", "Model X", "Model Y"],
   Volvo: ["V40", "V60", "V70", "V90", "S60", "S90", "XC40", "XC60", "XC90", "EX30"],
   Nissan: ["Micra", "Note", "Juke", "Qashqai", "X-Trail", "Leaf", "370Z", "GT-R", "Ariya"],
-  Mazda: ["Mazda2", "Mazda3", "Mazda6", "CX-3", "CX-30", "CX-5", "CX-60", "CX-80", "MX-5", "MX-30"],
+  Mazda: ["2", "3", "6", "CX-3", "CX-30", "CX-5", "CX-60", "CX-80", "MX-5", "MX-30"],
   Renault: [
     "Twingo",
     "Clio",
@@ -153,7 +165,7 @@ const SPOT_CHECKS: Record<string, string[]> = {
   Honda: ["Jazz", "Civic", "Accord", "CR-V", "HR-V", "NSX", "e", "ZR-V"],
   Mitsubishi: ["Colt", "Lancer", "ASX", "Eclipse Cross", "Outlander", "Pajero", "Space Star"],
   Subaru: ["Impreza", "Legacy", "Levorg", "Forester", "Outback", "BRZ", "XV", "Crosstrek"],
-  Suzuki: ["Swift", "Ignis", "Baleno", "Vitara", "S-Cross", "Jimny"],
+  Suzuki: ["Swift", "Ignis", "Baleno", "Vitara", "(SX4) S-Cross", "Jimny"],
   Jeep: ["Renegade", "Compass", "Cherokee", "Grand Cherokee", "Wrangler", "Avenger"],
   "Land Rover": [
     "Defender",
@@ -165,8 +177,8 @@ const SPOT_CHECKS: Record<string, string[]> = {
     "Range Rover Velar",
   ],
   Jaguar: ["XE", "XF", "XJ", "F-Type", "E-Pace", "F-Pace", "I-Pace"],
-  Lexus: ["CT", "IS", "ES", "GS", "LS", "UX", "NX", "RX", "RC", "LC"],
-  MINI: ["Hatch", "Cooper", "Clubman", "Countryman", "Paceman"],
+  Lexus: ["CT 200h", "IS", "ES", "GS", "LS", "UX", "NX", "RX", "RC", "LC 500"],
+  MINI: ["Cooper", "Clubman", "Countryman", "Paceman", "Aceman"],
   Smart: ["Fortwo", "Forfour", "#1", "#3"],
   MG: ["MG3", "MG4", "MG5", "ZS", "HS", "Marvel R", "Cyberster"],
   BYD: ["Dolphin", "Atto 3", "Seal", "Seal U", "Han", "Tang"],
@@ -198,36 +210,25 @@ describe("Fahrzeugkatalog-Spotchecks (Regressionstests)", () => {
 });
 
 /**
- * Bekannte, dokumentierte Lücken der gewählten Datenquelle (Dataset
- * 2026.08.2) – siehe docs/vehicle-data-sources.md, Abschnitt "Bekannte
- * Lücken". Bewusst NICHT im obigen Spot-Check enthalten und bewusst NICHT
- * manuell aus dem Gedächtnis ergänzt. Dieser Test hält fest, DASS sie fehlen
- * (statt es stillschweigend so zu lassen) – ändert sich das (z. B. weil
- * VehiclesDB sie in einer neueren Version ergänzt), wird dieser Test rot und
- * erinnert daran, docs/vehicle-data-sources.md zu aktualisieren.
+ * Bekannte, dokumentierte Lücken der mobile.de-Quelle (siehe
+ * docs/vehicle-data-sources.md, "Hinweise & Quellen"-Sheet des vendorten
+ * Excels: LEVC und Zhidou sind dort nur als Hersteller genannt, tauchen
+ * aber in der eigentlichen Gebrauchtwagen-Sitemap mit keiner einzigen
+ * Modellzeile auf). Bewusst NICHT manuell aus dem Gedächtnis ergänzt.
+ * Dieser Test hält fest, DASS diese Hersteller keine Modelle haben (statt
+ * es stillschweigend so zu lassen) – ändert sich das in einer neueren
+ * mobile.de-Erhebung, wird dieser Test rot und erinnert daran,
+ * docs/vehicle-data-sources.md zu aktualisieren.
  */
 describe("Bekannte Datenlücken (dokumentiert, nicht erfunden)", () => {
-  it("Polestar 1 ist in der aktuellen Quelle nicht vorhanden", async () => {
-    const manufacturer = await resolveManufacturerByTerm("Polestar");
-    expect(manufacturer).not.toBeNull();
-    if (!manufacturer) return;
-    const model = await resolveModelByTerm(manufacturer.slug, "1");
-    expect(model).toBeNull();
-  });
-
-  it("Dacia Lodgy ist in der aktuellen Quelle nicht vorhanden", async () => {
-    const manufacturer = await resolveManufacturerByTerm("Dacia");
-    expect(manufacturer).not.toBeNull();
-    if (!manufacturer) return;
-    const model = await resolveModelByTerm(manufacturer.slug, "Lodgy");
-    expect(model).toBeNull();
-  });
-
-  it("NIO EL7 ist in der aktuellen Quelle nicht vorhanden", async () => {
-    const manufacturer = await resolveManufacturerByTerm("NIO");
-    expect(manufacturer).not.toBeNull();
-    if (!manufacturer) return;
-    const model = await resolveModelByTerm(manufacturer.slug, "EL7");
-    expect(model).toBeNull();
-  });
+  it.each(["LEVC", "Zhidou"])(
+    '"%s" ist als Hersteller vorhanden, aber ohne Modelle (nur im Hinweise-Sheet genannt)',
+    async (term) => {
+      const manufacturer = await resolveManufacturerByTerm(term);
+      expect(manufacturer, `Hersteller "${term}" nicht gefunden`).not.toBeNull();
+      if (!manufacturer) return;
+      const models = await listActiveModelsForManufacturerSlug(manufacturer.slug);
+      expect(models).toHaveLength(0);
+    },
+  );
 });

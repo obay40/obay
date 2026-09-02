@@ -189,6 +189,13 @@ model AuditLog {
 
 enum VehicleCatalogSource {
   VEHICLES_DB
+  // Marken/Modelle aus der mobile.de-Gebrauchtwagen-Sitemap + dem offiziellen
+  // services.mobile.de Car-Changelog, siehe
+  // packages/database/vendor/mobile-de/ und docs/vehicle-data-sources.md.
+  // Seit dem Quellenwechsel die aktive Standardquelle der PKW-Suche;
+  // VEHICLES_DB-Datensätze bleiben in der Datenbank erhalten (nicht
+  // gelöscht), sind aber nicht mehr Teil der kuratierten Standardsicht.
+  MOBILE_DE
   MANUAL
   EXTERNAL_PROVIDER
 }
@@ -226,7 +233,13 @@ enum VehicleCurationStatus {
 
 model VehicleManufacturer {
   id            String               @id @default(cuid())
-  slug          String               @unique
+  // Nicht global @unique: seit dem mobile.de-Quellenwechsel können
+  // dieselben Slugs (z. B. "bmw") gleichzeitig unter VEHICLES_DB (inaktive
+  // Altquelle, bleibt erhalten) und MOBILE_DE (aktive Quelle) existieren.
+  // Eindeutig je Quelle (siehe @@unique([source, slug]) unten); die
+  // kuratierten Lesefunktionen (queries.ts) filtern immer zusätzlich nach
+  // source, sodass Anwender nie eine Kollision sehen.
+  slug          String
   name          String
   displayName   String?
   country       String?
@@ -244,6 +257,7 @@ model VehicleManufacturer {
   models  VehicleModel[]
 
   @@unique([source, sourceId])
+  @@unique([source, slug])
   @@index([isActive])
   @@index([isPopular])
   @@index([category])

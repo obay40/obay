@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { prisma } from "../../client";
 import { foldForComparison } from "../normalize";
+import { ACTIVE_CATALOG_SOURCE } from "../queries";
 
 const VALID_BODY_TYPES = new Set([
   "hatchback",
@@ -55,8 +56,16 @@ describe("Fahrzeugkatalog-Validierung", () => {
     }
   });
 
-  it("Hersteller-Slugs sind eindeutig", async () => {
-    const manufacturers = await prisma.vehicleManufacturer.findMany({ select: { slug: true } });
+  it("Hersteller-Slugs sind eindeutig innerhalb der aktiven Quelle", async () => {
+    // Slug ist NICHT global eindeutig (siehe schema.prisma-Kommentar zu
+    // VehicleManufacturer): derselbe Slug (z. B. "bmw") kann gleichzeitig
+    // unter der inaktiven Altquelle VEHICLES_DB und der aktiven Quelle
+    // MOBILE_DE existieren. Eindeutig ist er nur je Quelle - und nur die
+    // aktive Quelle ist das, was Nutzer über queries.ts tatsächlich sehen.
+    const manufacturers = await prisma.vehicleManufacturer.findMany({
+      where: { source: ACTIVE_CATALOG_SOURCE },
+      select: { slug: true },
+    });
     const slugs = manufacturers.map((m) => m.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
   });
@@ -73,8 +82,12 @@ describe("Fahrzeugkatalog-Validierung", () => {
     }
   });
 
-  it("keine zwei Hersteller mit identischem normalisiertem Namen", async () => {
+  it("keine zwei Hersteller mit identischem normalisiertem Namen innerhalb der aktiven Quelle", async () => {
+    // Analog zur Slug-Eindeutigkeit oben: Namenskollisionen zwischen
+    // VEHICLES_DB und MOBILE_DE (z. B. "Aixam" existiert in beiden Quellen)
+    // sind erwartet und unproblematisch, weil nur eine Quelle aktiv ist.
     const manufacturers = await prisma.vehicleManufacturer.findMany({
+      where: { source: ACTIVE_CATALOG_SOURCE },
       select: { name: true, displayName: true },
     });
     const normalized = new Map<string, string>();
@@ -112,9 +125,21 @@ describe("Fahrzeugkatalog-Validierung", () => {
   });
 
   it("importierter Katalog hat plausiblen Umfang (mehrere tausend Modelle, hunderte Hersteller)", async () => {
+    // Über ALLE Quellen kombiniert (VEHICLES_DB bleibt vollständig erhalten,
+    // siehe queries.ts-Modulkommentar) - beweist nur, dass nichts versehentlich
+    // gelöscht wurde. Der Umfang der AKTIVEN Quelle wird im nächsten Test geprüft.
     const manufacturerCount = await prisma.vehicleManufacturer.count();
     const modelCount = await prisma.vehicleModel.count();
     expect(manufacturerCount).toBeGreaterThan(200);
     expect(modelCount).toBeGreaterThan(4000);
+  });
+
+  it("aktive Quelle (mobile.de) hat plausiblen Umfang (hunderte Modelle, >100 Hersteller)", async () => {
+    const manufacturerCount = await prisma.vehicleManufacturer.count({
+      where: { source: ACTIVE_CATALOG_SOURCE },
+    });
+    const modelCount = await prisma.vehicleModel.count({ where: { source: ACTIVE_CATALOG_SOURCE } });
+    expect(manufacturerCount).toBeGreaterThan(100);
+    expect(modelCount).toBeGreaterThan(1500);
   });
 });
