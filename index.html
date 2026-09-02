@@ -177,6 +177,7 @@
     background:#fff;color:var(--ink);height:40px;
   }
   .filter-field select{cursor:pointer;}
+  .filter-field select:disabled{cursor:not-allowed;background:var(--bg-subtle);color:var(--ink-soft);}
   .filter-actions{
     margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
   }
@@ -407,7 +408,32 @@
     return "mailto:" + window.AUTOKLICK24_EMAIL + "?subject=" + encodeURIComponent(betreff);
   }
   // ---------- Fahrzeugsuche (Filterfeld wie mobile.de/AutoScout24) ----------
-  var MARKEN = ["Volkswagen","BMW","Mercedes-Benz","Audi","Opel","Ford","Škoda","Renault","Seat","Volvo","Toyota","Hyundai","Kia","Fiat","Peugeot","Mazda","Porsche","MINI","Tesla","Sonstige"];
+  // Modell hängt von der Marke ab - derselbe Katalog(-Gedanke) wie in der
+  // React-App (packages/types/vehicle-search.ts), hier als flaches Objekt
+  // für die abhängigkeitsfreie statische Seite.
+  var MAKE_MODELS = {
+    "Volkswagen": ["Polo","Golf","Passat","Tiguan","T-Roc","Touran","ID.3","ID.4"],
+    "BMW": ["1er","2er","3er","4er","5er","7er","X1","X3","X5","i4"],
+    "Mercedes-Benz": ["A-Klasse","B-Klasse","C-Klasse","E-Klasse","S-Klasse","GLA","GLC","GLE"],
+    "Audi": ["A1","A3","A4","A6","Q2","Q3","Q5","e-tron"],
+    "Opel": ["Corsa","Astra","Insignia","Mokka","Grandland"],
+    "Ford": ["Fiesta","Focus","Puma","Kuga","Mustang"],
+    "Škoda": ["Fabia","Scala","Octavia","Superb","Kamiq","Karoq","Kodiaq"],
+    "Renault": ["Clio","Captur","Megane","Austral","Zoe"],
+    "Seat": ["Ibiza","Leon","Arona","Ateca"],
+    "Volvo": ["V60","V90","XC40","XC60","XC90"],
+    "Toyota": ["Yaris","Corolla","C-HR","RAV4","Aygo X"],
+    "Hyundai": ["i10","i20","i30","Kona","Tucson"],
+    "Kia": ["Picanto","Ceed","Sportage","Sorento","EV6"],
+    "Fiat": ["500","Panda","Tipo","500X"],
+    "Peugeot": ["208","2008","308","3008"],
+    "Mazda": ["2","3","CX-3","CX-30","CX-5"],
+    "Porsche": ["911","718 Boxster/Cayman","Panamera","Macan","Cayenne","Taycan"],
+    "MINI": ["Cooper","Countryman","Clubman"],
+    "Tesla": ["Model 3","Model Y","Model S","Model X"],
+    "Sonstige": []
+  };
+  var MARKEN = Object.keys(MAKE_MODELS);
   var PREISE = [5000,10000,15000,20000,25000,30000,40000,50000,75000,100000];
   var JAHRE = (function(){ var out=[]; for (var y=2026;y>=2010;y--) out.push(y); return out; })();
   var KMSTAENDE = [5000,10000,20000,30000,50000,75000,100000,150000,200000];
@@ -477,8 +503,10 @@
       + '  <p>Grenze deine Suche ein – die Anfrage geht direkt an unser Team, solange der automatische Marktplatz im Aufbau ist.</p>'
       + '  <form id="filterForm" onsubmit="return false;">'
       + '    <div class="filter-grid">'
-      +        selectField('fMarke','Marke', opts('Alle Marken', MARKEN))
-      +        textField('fModell','Modell','z. B. Golf, 3er, A-Klasse')
+      + '      <div class="filter-field"><label for="fMarke">Marke</label>'
+      + '      <select id="fMarke" onchange="onMarkeChange()">' + opts('Alle Marken', MARKEN) + '</select></div>'
+      + '      <div class="filter-field"><label for="fModell">Modell</label>'
+      + '      <select id="fModell" disabled><option value="">Zuerst Marke wählen</option></select></div>'
       +        selectField('fPreis','Preis bis', opts('Egal', PREISE, function(v){ return v.toLocaleString('de-DE') + ' €'; }))
       +        selectField('fEz','Erstzulassung ab', opts('Egal', JAHRE))
       +        selectField('fKm','Kilometerstand bis', opts('Egal', KMSTAENDE, function(v){ return v.toLocaleString('de-DE') + ' km'; }))
@@ -524,8 +552,21 @@
 
   // Auf window hängen: inline onclick-Attribute suchen Bezeichner global,
   // nicht im Scope dieser IIFE.
-  var SELECT_IDS = ['fMarke','fPreis','fEz','fKm','fKraftstoff','fGetriebe','fKarosserie','fZustand','fPS','fHalter','fFarbe','fSitze','fTueren','fUmwelt'];
-  var TEXT_IDS = ['fModell','fOrt'];
+  var SELECT_IDS = ['fMarke','fModell','fPreis','fEz','fKm','fKraftstoff','fGetriebe','fKarosserie','fZustand','fPS','fHalter','fFarbe','fSitze','fTueren','fUmwelt'];
+  var TEXT_IDS = ['fOrt'];
+
+  window.onMarkeChange = function(){
+    var marke = document.getElementById('fMarke').value;
+    var modelSelect = document.getElementById('fModell');
+    var models = MAKE_MODELS[marke] || [];
+    if (!marke) {
+      modelSelect.innerHTML = '<option value="">Zuerst Marke wählen</option>';
+      modelSelect.disabled = true;
+    } else {
+      modelSelect.innerHTML = opts('Alle Modelle', models);
+      modelSelect.disabled = false;
+    }
+  };
   var FIELD_LABELS = {
     fMarke:'Marke', fModell:'Modell', fPreis:'Preis bis', fEz:'Erstzulassung ab', fKm:'Kilometerstand bis',
     fKraftstoff:'Kraftstoff', fGetriebe:'Getriebe', fOrt:'Standort',
@@ -538,6 +579,7 @@
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
+    onMarkeChange(); // sperrt Modell wieder und setzt den Hinweistext zurück
     document.querySelectorAll('input[name="ausstattung"]').forEach(function(cb){ cb.checked = false; });
   };
 
