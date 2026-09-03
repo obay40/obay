@@ -1,44 +1,28 @@
 # Brand Assets
 
-## ⚠️ TODO: offizielle Logo-Mark-Datei aus Original bereitstellen
+## Symbol
 
-**Das offizielle Autoklick24-Symbol liegt diesem Repository nicht bei.**
+Das Header-/Footer-Symbol ist das **Originallogo des Auftraggebers**, kein
+Nachbau. Es wurde aus der gelieferten Datei freigestellt:
 
-In dieser Arbeitsumgebung ist nie eine Bilddatei des Logos angekommen.
-Nachweislich eingegangen sind ausschließlich zwei Uploads:
-
-| Datei | Inhalt |
+| Datei | Rolle |
 |---|---|
-| `…-mobile_de_automarken_modelle_hierarchie_car.xlsx` | Fahrzeugkatalog |
-| `…-autocorp244.zip` | Vorgängerprojekt, enthält nur `icon-192/512.png` — ein Sechseck-„A", **nicht** dieses Logo |
+| `autoklick24-symbol.png` | freigestelltes Symbol, 302×302, RGBA — **das wird ausgeliefert** |
+| `autoklick24-logo-original.webp` | die gelieferte Originaldatei (Symbol + Schriftzug + Claim) zur Ablage |
 
-Solange keine Originaldatei vorliegt, rendert `Autoklick24Brand` die
-**Platzhalter**-Bildmarke aus `AutoklickMark.tsx`. Diese ist eine Eigenzeichnung,
-ausdrücklich **nicht** das Original, und wird bewusst nicht weiter an das
-Original angenähert — jede weitere Nachzeichnung wäre eine improvisierte
-Nachbildung.
+**Freistellung** (reproduzierbar, ohne Neuzeichnen): quadratischer Zuschnitt auf
+die Kachel (Originalpixel x 81–375, y 380–680), Hintergrund per Flood-Fill vom
+Bildrand entfernt — dadurch bleibt die weiße Fahrzeugfront *innerhalb* der
+Kachel erhalten — und die Kantenglättung auf Alpha zurückgerechnet, damit auf
+dem dunklen Footer kein weißer Saum entsteht.
 
-### Original einsetzen — drei Schritte
-
-1. **Datei ablegen** in diesem Ordner, z. B. `autoklick24-symbol.png`
-   Nur das Symbol: ohne Schriftzug, ohne Claim, ohne weißen Hintergrund.
-   PNG mit Transparenz (≥ 512 px) oder SVG.
-   Optional zusätzlich das vollständige Original als
-   `autoklick24-logo-original.png` zur Ablage.
-2. **Eine Zeile ändern** in `apps/web/src/components/ui/Autoklick24Brand.tsx`:
-   ```ts
-   const OFFICIAL_SYMBOL_SRC: string | null = "/brand/autoklick24-symbol.png";
-   ```
-   Header, Footer und alle weiteren Verwendungen ziehen automatisch nach.
-3. **Platzhalter entfernen**: `AutoklickMark.tsx` und `app/icon.svg` löschen
-   bzw. durch das Original ersetzen. Auch die Demo-Seite auf `gh-pages`
-   (`index.html`, zwei eingebettete SVGs) ersetzen — dort steht ein
-   entsprechender TODO-Kommentar.
+Verwendet wird es über `components/ui/Autoklick24Brand.tsx` (Konstante
+`SYMBOL_SRC`). Das gleiche Bild liegt als `app/icon.png` (Favicon) und auf
+`gh-pages` unter `assets/autoklick24-symbol.png`.
 
 > **GitHub Pages:** Die Demo läuft unter `https://obay40.github.io/obay/`.
-> Dort muss der Bildpfad **relativ** sein (`brand/autoklick24-symbol.png`),
-> ein führender Slash (`/brand/…`) liefert dort 404. In der Next.js-App ist
-> `/brand/…` dagegen korrekt.
+> Dort ist der Pfad **relativ** (`./assets/autoklick24-symbol.png`), ein
+> führender Slash würde 404 liefern. In der Next.js-App ist `/brand/…` korrekt.
 
 ## Wortmarke (abgenommen, unverändert lassen)
 
@@ -76,6 +60,5 @@ Das Symbol behält immer seine Originalfarben. **Keine** CSS-Filter
 | Datei | Rolle |
 |---|---|
 | `components/ui/Autoklick24Brand.tsx` | **einzige** Markendarstellung (Header + Footer) |
-| `components/ui/AutoklickMark.tsx` | Platzhalter-Symbol, siehe oben |
-| `app/icon.svg` | Favicon, gleiche Geometrie wie der Platzhalter |
-| gh-pages `index.html` | Demo-Seite, zwei eingebettete Kopien |
+| `app/icon.png` | Favicon, dasselbe freigestellte Symbol |
+| gh-pages `index.html` + `assets/` | Demo-Seite, Header und Footer |
