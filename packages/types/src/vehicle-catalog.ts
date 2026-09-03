@@ -77,6 +77,18 @@ export interface VehicleSearchFilters {
 }
 
 /**
+ * Grenzwerte und Standardwert des Umkreis-Sliders (siehe RadiusSlider in
+ * apps/web) - zentral hier definiert, damit UI, State-Default und
+ * Validierungs-Schema (@autoklick24/validation) nicht auseinanderlaufen.
+ * 0 km ist ein gueltiger, eigener Wert ("nur exakter Ort"), keine
+ * Sonderbedeutung "kein Filter" - siehe radiusKm oben.
+ */
+export const VEHICLE_SEARCH_RADIUS_MIN_KM = 0;
+export const VEHICLE_SEARCH_RADIUS_MAX_KM = 200;
+export const VEHICLE_SEARCH_RADIUS_STEP_KM = 5;
+export const VEHICLE_SEARCH_RADIUS_DEFAULT_KM = 50;
+
+/**
  * `baseUrl` ist für eine künftige App gedacht (volle URL nötig); im
  * Next.js-Web-Client bleibt es leer, ein relativer Pfad genügt.
  */

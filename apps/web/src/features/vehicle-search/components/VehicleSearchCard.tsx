@@ -3,18 +3,24 @@
 import { useVehicleSearch } from "../hooks/useVehicleSearch";
 import { useVehicleManufacturers } from "../hooks/useVehicleManufacturers";
 import { useVehicleModelGroups } from "../hooks/useVehicleModelGroups";
-import { buildYearOptions, buildMileageOptions, buildRadiusOptions } from "../lib/options";
+import { buildYearOptions, buildMileageOptions } from "../lib/options";
 import { MakeCombobox } from "./MakeCombobox";
 import { ModelGroupCombobox } from "./ModelGroupCombobox";
 import { ModelCombobox } from "./ModelCombobox";
 import { SelectField } from "./SelectField";
 import { NumberField } from "./NumberField";
 import { LocationInput } from "./LocationInput";
+import { RadiusSlider } from "./RadiusSlider";
 import { FuelTypeChips } from "./FuelTypeChips";
+import {
+  VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
+  VEHICLE_SEARCH_RADIUS_MIN_KM,
+  VEHICLE_SEARCH_RADIUS_MAX_KM,
+  VEHICLE_SEARCH_RADIUS_STEP_KM,
+} from "@autoklick24/types";
 
 const YEAR_OPTIONS = buildYearOptions();
 const MILEAGE_OPTIONS = buildMileageOptions();
-const RADIUS_OPTIONS = buildRadiusOptions();
 
 const searchIcon = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -127,27 +133,33 @@ export function VehicleSearchCard() {
               placeholder="Beliebig"
               className="sm:order-1"
             />
-            <LocationInput
-              value={search.filters.location ?? ""}
-              onChange={search.setLocation}
-              className="sm:order-4"
-            />
+            <div className="flex flex-col gap-3 sm:order-4">
+              <LocationInput
+                value={search.filters.location ?? ""}
+                onChange={search.setLocation}
+              />
+              {/*
+                Der Hook haelt radiusKm immer gesetzt (Standard siehe
+                useVehicleSearch); der Fallback hier ist nur fuer TypeScript,
+                der Filtertyp selbst laesst radiusKm optional.
+              */}
+              <RadiusSlider
+                id="vehicle-search-radius"
+                value={search.filters.radiusKm ?? VEHICLE_SEARCH_RADIUS_DEFAULT_KM}
+                onChange={search.setRadiusKm}
+                min={VEHICLE_SEARCH_RADIUS_MIN_KM}
+                max={VEHICLE_SEARCH_RADIUS_MAX_KM}
+                step={VEHICLE_SEARCH_RADIUS_STEP_KM}
+              />
+            </div>
           </div>
 
           {/*
-            Letzte Filterzeile: Umkreis, Leistung ab/bis und die
-            Kraftstoff-Chips teilen sich die vier Spalten. So bleibt keine
-            Spalte leer, seit Preis und Leistung je zwei Felder belegen.
+            Letzte Filterzeile: Leistung ab/bis und die Kraftstoff-Chips
+            teilen sich die vier Spalten (Umkreis sitzt jetzt direkt unter
+            dem Ort-Feld in der Zeile darüber, siehe Aufgabenstellung).
           */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <SelectField
-              id="vehicle-search-radius"
-              label="Umkreis"
-              value={search.filters.radiusKm ?? ""}
-              onChange={search.setRadiusKm}
-              options={RADIUS_OPTIONS}
-              placeholder="Bundesweit"
-            />
             <NumberField
               id="vehicle-search-power-from"
               label="Leistung ab"
@@ -167,7 +179,7 @@ export function VehicleSearchCard() {
             <FuelTypeChips
               value={search.filters.fuelTypes ?? []}
               onChange={search.setFuelTypes}
-              className="items-center sm:col-span-2 lg:col-span-1"
+              className="items-center sm:col-span-2 lg:col-span-2"
             />
           </div>
 

@@ -64,7 +64,23 @@ export default async function VehicleMarketplacePage({
   if (filters.powerFromPs) summary.push(`Leistung ab ${filters.powerFromPs} PS`);
   if (filters.powerToPs) summary.push(`Leistung bis ${filters.powerToPs} PS`);
   if (filters.location) summary.push(`Standort: ${filters.location}`);
-  if (filters.radiusKm) summary.push(`Umkreis: ${filters.radiusKm} km`);
+  // TODO: geocoding / radius backend integration.
+  // Sobald echte Fahrzeugstandorte/-koordinaten existieren (Phase 2): den
+  // Suchort geocodieren und die Distanz zu jedem Fahrzeugstandort
+  // berechnen, um mit filters.radiusKm zu filtern - 0 km bedeutet "nur der
+  // exakte Ort/PLZ-Bereich", nicht "kein Filter" (siehe
+  // VehicleSearchFilters.radiusKm). Bis dahin wird der Umkreis nur
+  // angezeigt, nicht angewendet - keine erfundenen Suchergebnisse. Ohne
+  // Ort ist der Wert wirkungslos, deshalb hier zusätzlich an filters.location
+  // gebunden (buildVehicleSearchParams lässt ihn ohne Ort gar nicht erst in
+  // die URL).
+  if (filters.location && filters.radiusKm !== undefined) {
+    summary.push(
+      filters.radiusKm === 0
+        ? "Umkreis: nur exakter Ort/PLZ-Bereich"
+        : `Umkreis: ${filters.radiusKm} km`,
+    );
+  }
   if (filters.fuelTypes?.length) {
     summary.push(`Kraftstoff: ${filters.fuelTypes.map((fuel) => FUEL_LABELS[fuel]).join(", ")}`);
   }

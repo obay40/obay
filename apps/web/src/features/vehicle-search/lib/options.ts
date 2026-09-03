@@ -20,15 +20,6 @@ export function buildMileageOptions(): SelectOption[] {
   return MILEAGE_STEPS_KM.map((km) => ({ value: km, label: formatKm(km) }));
 }
 
-const RADIUS_STEPS_KM = [10, 20, 50, 100, 200];
-
-export function buildRadiusOptions(): SelectOption[] {
-  return [
-    ...RADIUS_STEPS_KM.map((km) => ({ value: km, label: `${km} km` })),
-    { value: 0, label: "Bundesweit" },
-  ];
-}
-
 export function formatKm(value: number): string {
   return `${value.toLocaleString("de-DE")} km`;
 }

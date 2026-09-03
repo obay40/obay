@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { FuelType, VehicleSearchFilters } from "@autoklick24/types";
+import {
+  VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
+  type FuelType,
+  type VehicleSearchFilters,
+} from "@autoklick24/types";
 import { buildVehicleSearchParams } from "@autoklick24/validation";
 
 /**
@@ -15,11 +19,23 @@ import { buildVehicleSearchParams } from "@autoklick24/validation";
  */
 export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
   const router = useRouter();
-  const [filters, setFilters] = useState<VehicleSearchFilters>(initialFilters);
+  // Der Umkreis-Regler hat immer einen Wert (Standard 50 km) - anders als
+  // die übrigen, leer startenden Filter. ?? statt || : 0 km ist ein
+  // gültiger eigener Wert ("nur exakter Ort") und darf den Standard nicht
+  // auslösen.
+  const [filters, setFilters] = useState<VehicleSearchFilters>(() => ({
+    ...initialFilters,
+    radiusKm: initialFilters.radiusKm ?? VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
+  }));
 
   const hasActiveFilters = useMemo(() => {
     return (Object.keys(filters) as (keyof VehicleSearchFilters)[]).some((key) => {
       const fieldValue = filters[key];
+      if (key === "radiusKm") {
+        // Immer gesetzt (siehe oben) - zählt nur als aktiver Filter, wenn er
+        // vom Standardwert abweicht, sonst wäre "Zurücksetzen" immer sichtbar.
+        return fieldValue !== VEHICLE_SEARCH_RADIUS_DEFAULT_KM;
+      }
       return Array.isArray(fieldValue) ? fieldValue.length > 0 : fieldValue !== undefined;
     });
   }, [filters]);
@@ -66,8 +82,10 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     setFilters((prev) => ({ ...prev, powerToPs: powerToPs === "" ? undefined : powerToPs }));
   }
 
-  function setRadiusKm(radiusKm: number | "") {
-    setFilters((prev) => ({ ...prev, radiusKm: radiusKm === "" ? undefined : radiusKm }));
+  // Der Slider hat nie einen leeren Zustand (anders als die Zahlenfelder),
+  // deshalb kein number|"" wie bei den übrigen Settern.
+  function setRadiusKm(radiusKm: number) {
+    setFilters((prev) => ({ ...prev, radiusKm }));
   }
 
   function setLocation(location: string) {
@@ -79,7 +97,9 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
   }
 
   function reset() {
-    setFilters({});
+    // Umkreis geht bewusst nicht auf undefined, sondern auf seinen
+    // Standardwert zurück (siehe Aufgabenstellung Umkreis-Regler, Reset).
+    setFilters({ radiusKm: VEHICLE_SEARCH_RADIUS_DEFAULT_KM });
   }
 
   function submit(basePath = "/autos") {
