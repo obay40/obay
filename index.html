@@ -681,6 +681,7 @@
       + '      <select id="fMarke" onchange="onMarkeChange()">' + optsMarke() + '</select></div>'
       + '      <div class="filter-field"><label for="fModell">Modell</label>'
       + '      <select id="fModell" disabled><option value="">Zuerst Marke wählen</option></select></div>'
+      +        numberField('fPreisVon','Preis von', '€')
       +        numberField('fPreis','Preis bis', '€')
       +        selectField('fEz','Erstzulassung ab', opts('Egal', JAHRE))
       +        selectField('fKm','Kilometerstand bis', opts('Egal', KMSTAENDE, function(v){ return v.toLocaleString('de-DE') + ' km'; }))
@@ -698,6 +699,7 @@
       +            selectField('fKarosserie','Karosserieform', opts('Alle', KAROSSERIEFORMEN))
       +            selectField('fZustand','Zustand', opts('Alle', ZUSTAENDE))
       +            numberField('fPS','Leistung ab', 'PS')
+      +            numberField('fPSBis','Leistung bis', 'PS')
       +            selectField('fFarbe','Außenfarbe', opts('Alle', FARBEN))
       +            selectField('fSitze','Sitzplätze', opts('Egal', SITZPLAETZE))
       +            selectField('fTueren','Türen', opts('Alle', TUEREN))
@@ -727,7 +729,7 @@
   var SELECT_IDS = ['fMarke','fModell','fEz','fKm','fKraftstoff','fGetriebe','fKarosserie','fZustand','fFarbe','fSitze','fTueren'];
   var TEXT_IDS = ['fOrt'];
   // Preis und Leistung sind freie Zahleneingaben; leer = kein Filter.
-  var NUMBER_IDS = ['fPreis','fPS'];
+  var NUMBER_IDS = ['fPreisVon','fPreis','fPS','fPSBis'];
 
   // Baureihen-Unterteilung (z. B. BMW "3er Reihe", Mercedes-Benz "C-Klasse")
   // als <optgroup> im nativen <select> - das statische Pendant zur
@@ -761,9 +763,9 @@
     }
   };
   var FIELD_LABELS = {
-    fMarke:'Marke', fModell:'Modell', fPreis:'Preis bis', fEz:'Erstzulassung ab', fKm:'Kilometerstand bis',
+    fMarke:'Marke', fModell:'Modell', fPreisVon:'Preis von', fPreis:'Preis bis', fEz:'Erstzulassung ab', fKm:'Kilometerstand bis',
     fKraftstoff:'Kraftstoff', fGetriebe:'Getriebe', fOrt:'Standort',
-    fKarosserie:'Karosserieform', fZustand:'Zustand', fPS:'Leistung ab',
+    fKarosserie:'Karosserieform', fZustand:'Zustand', fPS:'Leistung ab', fPSBis:'Leistung bis',
     fFarbe:'Außenfarbe', fSitze:'Sitzplätze', fTueren:'Türen'
   };
 
@@ -783,8 +785,10 @@
       if (val(id)) parts.push(FIELD_LABELS[id] + ': ' + val(id));
     });
     // Einheit an den Wert haengen, damit die Anfrage eindeutig lesbar ist.
+    if (val('fPreisVon')) parts.push(FIELD_LABELS.fPreisVon + ': ' + Number(val('fPreisVon')).toLocaleString('de-DE') + ' €');
     if (val('fPreis')) parts.push(FIELD_LABELS.fPreis + ': ' + Number(val('fPreis')).toLocaleString('de-DE') + ' €');
     if (val('fPS')) parts.push(FIELD_LABELS.fPS + ': ' + val('fPS') + ' PS');
+    if (val('fPSBis')) parts.push(FIELD_LABELS.fPSBis + ': ' + val('fPSBis') + ' PS');
 
     var ausstattung = Array.prototype.slice.call(document.querySelectorAll('input[name="ausstattung"]:checked'))
       .map(function(cb){ return cb.value; });
