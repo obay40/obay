@@ -191,6 +191,25 @@
   .number-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .number-field .field-unit{position:absolute;right:12px;bottom:11px;font-size:.9rem;font-weight:600;color:var(--navy-500);pointer-events:none;}
   .filter-field select:disabled{cursor:not-allowed;background:var(--bg-subtle);color:var(--ink-soft);}
+  /* Ort/PLZ + Umkreis-Regler teilen sich eine Grid-Zelle (Regler "direkt darunter"). */
+  .filter-field-stack{display:flex;flex-direction:column;gap:12px;}
+  .radius-field{border:1px solid var(--border-strong);border-radius:10px;padding:8px 12px 12px;}
+  .radius-field-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+  .radius-field-head label{margin-bottom:0;}
+  .radius-value{font-size:.88rem;font-weight:700;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  /*
+   * Natives <input type="range">, nur eingefaerbt (dieselbe Optik wie
+   * apps/web/src/app/globals.css .ak-range) - Browser-Pseudoelemente lassen
+   * sich ueber generische CSS-Klassen nicht anders erreichen.
+   * --ak-range-progress kommt als Inline-Style vom aktuellen Wert.
+   */
+  .ak-range{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;cursor:pointer;margin-top:10px;}
+  .ak-range:focus{outline:none;}
+  .ak-range::-webkit-slider-runnable-track{height:6px;border-radius:9999px;background:linear-gradient(to right,var(--brand-500) var(--ak-range-progress,25%),var(--brand-100) var(--ak-range-progress,25%));}
+  .ak-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:9999px;background:#fff;border:3px solid var(--brand-500);box-shadow:0 1px 4px rgba(10,22,38,.25);}
+  .ak-range::-moz-range-track{height:6px;border-radius:9999px;background:var(--brand-100);}
+  .ak-range::-moz-range-progress{height:6px;border-radius:9999px;background:var(--brand-500);}
+  .ak-range::-moz-range-thumb{width:22px;height:22px;border-radius:9999px;background:#fff;border:3px solid var(--brand-500);box-shadow:0 1px 4px rgba(10,22,38,.25);cursor:pointer;}
   .filter-actions{
     margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
   }
@@ -590,6 +609,11 @@
   var BELIEBTE_MARKEN = ["Volkswagen", "Mercedes-Benz", "BMW", "Audi", "Škoda", "Opel", "Ford", "Toyota", "Hyundai", "Porsche"];
   var MARKEN = Object.keys(MAKE_MODELS).filter(function(m){ return m !== "Sonstige"; });
   var ANDERE_MARKEN = MARKEN.filter(function(m){ return BELIEBTE_MARKEN.indexOf(m) === -1; });
+  var RADIUS_ID = 'fUmkreis';
+  var RADIUS_MIN = 0;
+  var RADIUS_MAX = 200;
+  var RADIUS_STEP = 5;
+  var RADIUS_DEFAULT = 50;
   var JAHRE = (function(){ var out=[]; for (var y=2026;y>=2010;y--) out.push(y); return out; })();
   var KMSTAENDE = [5000,10000,20000,30000,50000,75000,100000,150000,200000];
   var KRAFTSTOFFE = ["Benzin","Diesel","Elektro","Hybrid (Benzin/Elektro)","Hybrid (Diesel/Elektro)","Plug-in-Hybrid","Autogas (LPG)","Erdgas (CNG)","Wasserstoff"];
@@ -654,6 +678,27 @@
     return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
       + '<input id="' + id + '" type="text" placeholder="' + placeholder + '"></div>';
   }
+  // Umkreis-Regler: natives <input type="range">, 0-200 km in 5-km-Schritten,
+  // Standard 50 km. 0 km ist ein eigener Wert ("nur exakter Ort"), keine
+  // Sonderbedeutung "kein Filter" - siehe radiusValueLabel().
+  function radiusField(id){
+    return '<div class="filter-field radius-field">'
+      + '<div class="radius-field-head"><label for="' + id + '">Umkreis</label>'
+      + '<span class="radius-value" id="' + id + '_value">' + radiusValueLabel(RADIUS_DEFAULT) + '</span></div>'
+      + '<input id="' + id + '" class="ak-range" type="range" min="' + RADIUS_MIN + '" max="' + RADIUS_MAX + '" step="' + RADIUS_STEP + '" value="' + RADIUS_DEFAULT + '" '
+      +   'style="--ak-range-progress:' + (RADIUS_DEFAULT / RADIUS_MAX * 100) + '%" '
+      +   'aria-label="Umkreis" aria-valuetext="' + RADIUS_DEFAULT + ' Kilometer" '
+      +   'oninput="onRadiusInput(this)"></div>';
+  }
+  function radiusValueLabel(km){
+    return km === 0 ? '0 km · nur exakter Ort' : km + ' km';
+  }
+  window.onRadiusInput = function(input){
+    var km = Number(input.value);
+    input.style.setProperty('--ak-range-progress', (km / RADIUS_MAX * 100) + '%');
+    input.setAttribute('aria-valuetext', km === 0 ? '0 Kilometer, nur exakter Ort' : km + ' Kilometer');
+    document.getElementById(input.id + '_value').textContent = radiusValueLabel(km);
+  };
   function checkboxField(name, label){
     var id = 'chk_' + name.replace(/[^a-zA-Z0-9]/g, '');
     return '<label class="checkbox-field" for="' + id + '">'
@@ -687,7 +732,7 @@
       +        selectField('fKm','Kilometerstand bis', opts('Egal', KMSTAENDE, function(v){ return v.toLocaleString('de-DE') + ' km'; }))
       +        selectField('fKraftstoff','Kraftstoff', opts('Alle', KRAFTSTOFFE))
       +        selectField('fGetriebe','Getriebe', opts('Alle', GETRIEBE))
-      +        textField('fOrt','Standort','PLZ oder Ort')
+      +        '<div class="filter-field-stack">' + textField('fOrt','Standort','PLZ oder Ort') + radiusField(RADIUS_ID) + '</div>'
       + '    </div>'
       + '    <button type="button" class="filter-toggle" id="advToggle" aria-expanded="false" aria-controls="advancedFilters" onclick="toggleAdvancedFilters()">'
       +        chevron + ' Erweiterte Filter'
@@ -774,6 +819,10 @@
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
+    // Umkreis geht bewusst nicht auf leer, sondern auf seinen Standardwert
+    // zurueck (siehe Aufgabenstellung Umkreis-Regler, Reset).
+    var radiusEl = document.getElementById(RADIUS_ID);
+    if (radiusEl) { radiusEl.value = RADIUS_DEFAULT; onRadiusInput(radiusEl); }
     onMarkeChange(); // sperrt Modell wieder und setzt den Hinweistext zurück
     document.querySelectorAll('input[name="ausstattung"]').forEach(function(cb){ cb.checked = false; });
   };
@@ -789,6 +838,14 @@
     if (val('fPreis')) parts.push(FIELD_LABELS.fPreis + ': ' + Number(val('fPreis')).toLocaleString('de-DE') + ' €');
     if (val('fPS')) parts.push(FIELD_LABELS.fPS + ': ' + val('fPS') + ' PS');
     if (val('fPSBis')) parts.push(FIELD_LABELS.fPSBis + ': ' + val('fPSBis') + ' PS');
+    // Umkreis ist ohne Ort wirkungslos, deshalb nur zusammen mit fOrt
+    // aufgenommen (siehe RadiusSlider/radiusField, Sektion "0 km").
+    // TODO: geocoding / radius backend integration - siehe VehicleSearchFilters.radiusKm
+    // in packages/types (apps/web) fuer die vollstaendige Begruendung.
+    if (val('fOrt')) {
+      var radiusVal = Number(document.getElementById(RADIUS_ID).value);
+      parts.push('Umkreis: ' + radiusValueLabel(radiusVal));
+    }
 
     var ausstattung = Array.prototype.slice.call(document.querySelectorAll('input[name="ausstattung"]:checked'))
       .map(function(cb){ return cb.value; });
