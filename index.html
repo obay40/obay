@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImFrYyIgeDE9IjAlIiB5MT0iMTAwJSIgeDI9IjEwMCUiIHkyPSIwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzVDRDNFOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFFNTZCOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iMjIiIGZpbGw9IiMwQTE2MjYiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMiA0NCBRMjIgMzAgMzQgMzAgSDY2IFE3OCAzMCA3OCA0NCBWNjAgUTc4IDY2IDcyIDY2IEgyOCBRMjIgNjYgMjIgNjAgWiIvPjxwYXRoIGQ9Ik0zMCAzOCBINzAiIHN0cm9rZS13aWR0aD0iMi41IiBvcGFjaXR5PSIuNyIvPjxyZWN0IHg9IjI2IiB5PSI0NSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjkiIHJ4PSIzIi8+PHJlY3QgeD0iNjAiIHk9IjQ1IiB3aWR0aD0iMTQiIGhlaWdodD0iOSIgcng9IjMiLz48cGF0aCBkPSJNNDQgNTIgSDU2IiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNNDMgNTggSDU3IiBzdHJva2Utd2lkdGg9IjMiLz48L2c+PGcgc3Ryb2tlPSIjMkZBRTdBIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTE2IDYyIEwyMyA2MCIvPjxwYXRoIGQ9Ik0xOCA3MCBMMjUgNjYuNSIvPjxwYXRoIGQ9Ik0yMyA3NyBMMjggNzIiLz48L2c+PHBhdGggZD0iTTMzIDU1IEwzMyA4MiBMNDAuNSA3NS41IEw0NS41IDg2IEw1MS41IDgzIEw0Ni41IDcyLjUgTDU2IDcyLjUgWiIgZmlsbD0idXJsKCNha2MpIiBzdHJva2U9IiMwQTE2MjYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#ffffff;
@@ -69,17 +69,20 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  .header-row{height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-  .logo{font-family:var(--font-display);font-weight:800;font-size:1.6rem;letter-spacing:-.02em;display:flex;align-items:center;gap:11px;}
-  .logo-mark{width:40px;height:40px;flex-shrink:0;}
-  .logo b{font-weight:800;color:var(--navy-900);}
-  .logo i{font-style:normal;font-weight:800;color:var(--cyan-400);}
-  .logo span{color:var(--brand-500);}
-  nav.primary{display:none;align-items:center;gap:28px;}
-  nav.primary a{font-size:.9rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;}
+  .header-row{height:88px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .logo,.footer-logo{display:flex;align-items:center;gap:12px;}
+  .logo-mark{width:50px;height:50px;flex-shrink:0;}
+  .logo-text{display:flex;flex-direction:column;justify-content:center;line-height:1;}
+  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.75rem;letter-spacing:-.02em;}
+  .logo-word b{font-weight:800;color:#0B1F3F;}
+  .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .logo-tagline{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:500;font-size:.72rem;color:#14294F;margin-top:6px;}
+  .logo-tagline b{font-weight:700;color:#1E70EA;}
+  nav.primary{display:none;align-items:center;gap:22px;}
+  nav.primary a{font-size:.9rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
   nav.primary a:hover{color:var(--brand-600);}
   nav.primary a.active{color:var(--brand-600);border-color:var(--brand-500);}
-  .header-actions{display:none;align-items:center;gap:14px;}
+  .header-actions{display:none;align-items:center;gap:14px;white-space:nowrap;}
   .header-actions a.text-link{font-size:.9rem;font-weight:500;color:var(--navy-700);}
   .header-actions a.text-link:hover{color:var(--brand-600);}
   .btn{
@@ -108,7 +111,7 @@
   #mobile-nav a:hover{background:var(--bg-subtle);}
   #mobile-nav .mn-actions{margin-top:8px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
 
-  @media (min-width:960px){
+  @media (min-width:1280px){
     nav.primary{display:flex;}
     .header-actions{display:flex;}
     .burger{display:none;}
@@ -276,10 +279,8 @@
   .footer-grid a{font-size:.84rem;color:#93A4BE;}
   .footer-grid a:hover{color:var(--cyan-300);}
   .footer-bottom{margin-top:44px;padding:22px 0 26px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
-  .footer-logo{font-family:var(--font-display);font-weight:800;font-size:1.3rem;display:inline-flex;align-items:center;gap:10px;}
-  .footer-logo b{color:#fff;}
-  .footer-logo i{font-style:normal;font-weight:800;color:var(--cyan-400);}
-  .footer-logo span{color:var(--brand-400,#4F91F5);}
+  .footer-logo .logo-word b{color:#fff;}
+  .footer-logo .logo-tagline{color:#C7D6EC;}
   .footer-bottom p{font-size:.76rem;color:#6F80998a; color:#7C8CA5;max-width:520px;}
 
   [hidden]{display:none!important;}
@@ -299,7 +300,7 @@
 
 <header class="site">
   <div class="wrap header-row">
-    <a href="#/" class="logo"><svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="akc" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#5CD3E8"/><stop offset="100%" stop-color="#1E56B8"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="#0A1626"/><g fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 44 Q22 30 34 30 H66 Q78 30 78 44 V60 Q78 66 72 66 H28 Q22 66 22 60 Z"/><path d="M30 38 H70" stroke-width="2.5" opacity=".7"/><rect x="26" y="45" width="14" height="9" rx="3"/><rect x="60" y="45" width="14" height="9" rx="3"/><path d="M44 52 H56" stroke-width="3"/><path d="M43 58 H57" stroke-width="3"/></g><g stroke="#2FAE7A" stroke-width="3" stroke-linecap="round"><path d="M16 62 L23 60"/><path d="M18 70 L25 66.5"/><path d="M23 77 L28 72"/></g><path d="M33 55 L33 82 L40.5 75.5 L45.5 86 L51.5 83 L46.5 72.5 L56 72.5 Z" fill="url(#akc)" stroke="#0A1626" stroke-width="1.5" stroke-linejoin="round"/></svg><b>Auto</b><i>klick</i><span>24</span></a>
+    <a href="#/" class="logo"><svg class="logo-mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="akc" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#63B3F9"/><stop offset="100%" stop-color="#1A6ADF"/></linearGradient></defs><rect width="200" height="200" rx="52" fill="#12264A"/><path d="M40 116 L40 90 Q40 79 50 75 L60 71 Q64 55 76 48 Q87 42 100 42 Q113 42 124 48 Q136 55 140 71 L150 75 Q160 79 160 90 L160 116 Q160 126 150 126 L50 126 Q40 126 40 116 Z" fill="#FFFFFF"/><path d="M71 76 Q76 56 100 56 Q124 56 129 76 Z" fill="#12264A"/><path d="M40 86 L25 90 Q21 91 22 95 L23 98 Q24 102 28 101 L40 97 Z" fill="#FFFFFF"/><path d="M160 86 L175 90 Q179 91 178 95 L177 98 Q176 102 172 101 L160 97 Z" fill="#FFFFFF"/><path d="M50 88 L86 94 L86 101 L50 95 Z" fill="#12264A"/><path d="M150 88 L114 94 L114 101 L150 95 Z" fill="#12264A"/><rect x="76" y="110" width="48" height="9" rx="4.5" fill="#12264A"/><g stroke="#5CC22B" stroke-width="7" stroke-linecap="round"><path d="M36 133 L50 136"/><path d="M33 150 L48 149"/><path d="M40 166 L52 160"/></g><path d="M84 106 L84 152 L95 143 L103 161 L114 156 L106 139 L121 139 Z" fill="url(#akc)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round"/></svg><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span><span class="logo-tagline">Auto verkaufen. <b>Klick.</b> Fertig.</span></span></a>
 
     <nav class="primary" id="primary-nav">
       <a href="#/autos" data-route="/autos">Autos kaufen</a>
@@ -384,7 +385,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-logo"><svg class="logo-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="akc" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#5CD3E8"/><stop offset="100%" stop-color="#1E56B8"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="#0A1626"/><g fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 44 Q22 30 34 30 H66 Q78 30 78 44 V60 Q78 66 72 66 H28 Q22 66 22 60 Z"/><path d="M30 38 H70" stroke-width="2.5" opacity=".7"/><rect x="26" y="45" width="14" height="9" rx="3"/><rect x="60" y="45" width="14" height="9" rx="3"/><path d="M44 52 H56" stroke-width="3"/><path d="M43 58 H57" stroke-width="3"/></g><g stroke="#2FAE7A" stroke-width="3" stroke-linecap="round"><path d="M16 62 L23 60"/><path d="M18 70 L25 66.5"/><path d="M23 77 L28 72"/></g><path d="M33 55 L33 82 L40.5 75.5 L45.5 86 L51.5 83 L46.5 72.5 L56 72.5 Z" fill="url(#akc)" stroke="#0A1626" stroke-width="1.5" stroke-linejoin="round"/></svg><b>Auto</b><i>klick</i><span>24</span></span>
+      <span class="footer-logo"><svg class="logo-mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="akc" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#63B3F9"/><stop offset="100%" stop-color="#1A6ADF"/></linearGradient></defs><rect width="200" height="200" rx="52" fill="#12264A"/><path d="M40 116 L40 90 Q40 79 50 75 L60 71 Q64 55 76 48 Q87 42 100 42 Q113 42 124 48 Q136 55 140 71 L150 75 Q160 79 160 90 L160 116 Q160 126 150 126 L50 126 Q40 126 40 116 Z" fill="#FFFFFF"/><path d="M71 76 Q76 56 100 56 Q124 56 129 76 Z" fill="#12264A"/><path d="M40 86 L25 90 Q21 91 22 95 L23 98 Q24 102 28 101 L40 97 Z" fill="#FFFFFF"/><path d="M160 86 L175 90 Q179 91 178 95 L177 98 Q176 102 172 101 L160 97 Z" fill="#FFFFFF"/><path d="M50 88 L86 94 L86 101 L50 95 Z" fill="#12264A"/><path d="M150 88 L114 94 L114 101 L150 95 Z" fill="#12264A"/><rect x="76" y="110" width="48" height="9" rx="4.5" fill="#12264A"/><g stroke="#5CC22B" stroke-width="7" stroke-linecap="round"><path d="M36 133 L50 136"/><path d="M33 150 L48 149"/><path d="M40 166 L52 160"/></g><path d="M84 106 L84 152 L95 143 L103 161 L114 156 L106 139 L121 139 Z" fill="url(#akc)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round"/></svg><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span><span class="logo-tagline">Auto verkaufen. <b>Klick.</b> Fertig.</span></span></span>
       <p>© 2026 Autoklick24 · Anfragen werden aktuell manuell per WhatsApp/E-Mail bearbeitet, der automatisierte Marktplatz folgt schrittweise · Rechtstexte sind Platzhalter und juristisch zu prüfen.</p>
     </div>
   </div>
