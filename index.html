@@ -69,23 +69,23 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  .header-row{height:83px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .header-row{height:92px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
   .logo,.footer-logo{display:flex;align-items:center;gap:12px;}
-  .logo-mark{width:44px;height:44px;flex-shrink:0;}
+  .logo-mark{width:48px;height:48px;flex-shrink:0;}
   .logo-text{display:flex;flex-direction:column;justify-content:center;line-height:1;}
-  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;white-space:nowrap;}
+  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.02em;white-space:nowrap;}
   .logo-word b{font-weight:800;color:#0B1F3F;}
   .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
   @media (min-width:640px){
-    .logo-mark{width:56px;height:56px;}
-    .logo-word{font-size:1.625rem;}
+    .logo-mark{width:64px;height:64px;}
+    .logo-word{font-size:1.875rem;}
   }
   nav.primary{display:none;align-items:center;gap:16px;}
-  nav.primary a{font-size:1rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
+  nav.primary a{font-size:1.0625rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
   nav.primary a:hover{color:var(--brand-600);}
   nav.primary a.active{color:var(--brand-600);border-color:var(--brand-500);}
   .header-actions{display:none;align-items:center;gap:12px;white-space:nowrap;}
-  .header-actions a.text-link{font-size:1rem;font-weight:500;color:var(--navy-700);}
+  .header-actions a.text-link{font-size:1.0625rem;font-weight:500;color:var(--navy-700);}
   .header-actions a.text-link:hover{color:var(--brand-600);}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:6px;
@@ -94,9 +94,6 @@
     transition:background .15s,color .15s,border-color .15s,transform .1s;
     font-family:var(--font-body);
   }
-  /* Nur der Header-CTA wird groesser (siehe Aufgabe "Header groesser") - das
-     globale .btn bleibt fuer Login/Registrieren/Mobilmenue unveraendert. */
-  .header-actions .btn{font-size:1rem;padding:11px 22px;}
   .btn:active{transform:translateY(1px);}
   .btn-primary{background:var(--brand-500);color:#fff;box-shadow:var(--shadow-card);}
   .btn-primary:hover{background:var(--brand-600);}
@@ -318,6 +315,13 @@
   .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .checkline{display:flex;gap:8px;align-items:flex-start;font-size:.82rem;color:var(--ink-muted);}
   .checkline a{color:var(--brand-600);font-weight:600;}
+  /* Haendlerregistrierung: deutlich mehr Felder als der einfache
+     Kunden-Login, deshalb breiterer Formular-Container. */
+  .auth-wrap.wide{max-width:640px;}
+  .form-section{margin-top:26px;}
+  .form-section-title{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin-bottom:10px;}
+  .form-hint{font-size:.78rem;color:var(--ink-soft);margin-top:5px;}
+  .status-pill{display:inline-flex;align-items:center;border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;background:var(--brand-50);color:var(--brand-700);}
   .switch-line{margin-top:22px;text-align:center;font-size:.86rem;color:var(--ink-muted);}
   .switch-line a{color:var(--brand-600);font-weight:600;}
 
@@ -359,13 +363,11 @@
       <a href="#/auto-verkaufen" data-route="/auto-verkaufen">Auto verkaufen</a>
       <a href="#/auto-vermitteln" data-route="/auto-vermitteln">Auto vermitteln</a>
       <a href="#/auto-inserieren" data-route="/auto-inserieren">Auto inserieren</a>
-      <a href="#/haendler" data-route="/haendler">Für Händler</a>
+      <a href="#/haendler-login" data-route="/haendler-login">Händlerlogin</a>
     </nav>
 
     <div class="header-actions">
-      <a href="#/favoriten" class="text-link" data-route="/favoriten">Favoriten</a>
       <a href="#/anmelden" class="text-link" data-route="/anmelden">Anmelden</a>
-      <a href="#/auto-verkaufen" class="btn btn-primary">Auto verkaufen</a>
     </div>
 
     <button class="burger" id="burger-btn" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-nav">
@@ -379,11 +381,9 @@
       <a href="#/auto-verkaufen" data-route="/auto-verkaufen">Auto verkaufen</a>
       <a href="#/auto-vermitteln" data-route="/auto-vermitteln">Auto vermitteln</a>
       <a href="#/auto-inserieren" data-route="/auto-inserieren">Auto inserieren</a>
-      <a href="#/haendler" data-route="/haendler">Für Händler</a>
+      <a href="#/haendler-login" data-route="/haendler-login">Händlerlogin</a>
       <div class="mn-actions">
-        <a href="#/favoriten" data-route="/favoriten">Favoriten</a>
         <a href="#/anmelden" data-route="/anmelden">Anmelden</a>
-        <a href="#/auto-verkaufen" class="btn btn-primary btn-block">Auto verkaufen</a>
       </div>
     </div>
   </nav>
@@ -415,7 +415,7 @@
         <h3>Händler</h3>
         <ul>
           <li><a href="#/haendler" data-route="/haendler">Händler werden</a></li>
-          <li><a href="#/anmelden" data-route="/anmelden">Händlerlogin</a></li>
+          <li><a href="#/haendler-login" data-route="/haendler-login">Händlerlogin</a></li>
         </ul>
       </div>
       <div>
@@ -1090,6 +1090,136 @@
       + '</div></div>';
   }
 
+  // ---------- Händlerlogin / Händlerregistrierung ----------
+  // Eigener Login-/Registrierungsbereich für Autohäuser (siehe
+  // Aufgabenstellung "HÄNDLERLOGIN" / "HÄNDLERREGISTRIERUNG"), getrennt vom
+  // einfachen Kunden-Login oben. Diese statische Demo-Seite hat KEIN
+  // Backend - genau wie loginView()/registerView() oben wird nichts
+  // wirklich gespeichert oder authentifiziert. Der Gewerbenachweis wird
+  // NUR clientseitig geprüft (Format/Größe) und NIRGENDS hochgeladen oder
+  // gespeichert - das ist die sicherste Form von "nicht öffentlich": die
+  // Datei verlässt den Browser gar nicht. Der Händler wird nach dem
+  // Absenden NIE als verifiziert angezeigt, sondern immer nur mit dem
+  // Status "Prüfung läuft" (siehe Aufgabenstellung "KEINE SOFORTIGE
+  // HÄNDLERFREISCHALTUNG").
+  function haendlerLoginView(){
+    return '<div class="wrap"><div class="auth-wrap">'
+      + '<h1>Händlerlogin</h1><p>Für Autohäuser und gewerbliche Fahrzeuganbieter.</p>'
+      + '<div class="demo-note">Der Händlerlogin folgt in einer späteren Ausbaustufe. Für eine Händleranfrage erreichst du uns jetzt schon direkt per <a href="#/kontakt">Kontakt</a>.</div>'
+      + '<form class="auth" onsubmit="return false;">'
+      + '  <div class="field"><label for="dl-email">E-Mail-Adresse</label><input id="dl-email" type="email" placeholder="haendler@beispiel.de"></div>'
+      + '  <div class="field"><label for="dl-pw">Passwort</label><input id="dl-pw" type="password" placeholder="••••••••••"></div>'
+      + '  <button class="btn btn-primary btn-block" type="submit">Als Händler anmelden</button>'
+      + '</form>'
+      + '<p class="switch-line">Noch kein Händlerkonto? <a href="#/haendler-registrieren">Jetzt registrieren</a></p>'
+      + '<p class="switch-line"><a href="#/kontakt">Passwort vergessen?</a></p>'
+      + '</div></div>';
+  }
+
+  function haendlerRegisterView(){
+    return '<div class="wrap"><div class="auth-wrap wide">'
+      + '<h1>Händlerregistrierung</h1><p>Für Autohäuser und gewerbliche Fahrzeuganbieter. Nach dem Absenden prüfen wir dein Händlerkonto, bevor es freigeschaltet wird.</p>'
+      + '<form class="auth" id="dealer-register-form" onsubmit="return window.submitHaendlerRegistration(event);">'
+
+      + '  <div class="form-section"><div class="form-section-title">Unternehmen</div>'
+      + '    <div class="field"><label for="dr-company">Firmenname / Autohaus</label><input id="dr-company" required></div>'
+      + '    <div class="field-row" style="margin-top:12px;">'
+      + '      <div class="field"><label for="dr-fn">Ansprechpartner Vorname</label><input id="dr-fn" required></div>'
+      + '      <div class="field"><label for="dr-ln">Ansprechpartner Nachname</label><input id="dr-ln" required></div>'
+      + '    </div>'
+      + '    <div class="field" style="margin-top:12px;"><label for="dr-email">Geschäftliche E-Mail-Adresse</label><input id="dr-email" type="email" required></div>'
+      + '    <div class="field" style="margin-top:12px;"><label for="dr-phone">Telefonnummer</label><input id="dr-phone" required></div>'
+      + '  </div>'
+
+      + '  <div class="form-section"><div class="form-section-title">Adresse</div>'
+      + '    <div class="field-row">'
+      + '      <div class="field"><label for="dr-street">Straße</label><input id="dr-street" required></div>'
+      + '      <div class="field"><label for="dr-housenumber">Hausnummer</label><input id="dr-housenumber" required></div>'
+      + '    </div>'
+      + '    <div class="field-row" style="margin-top:12px;">'
+      + '      <div class="field"><label for="dr-postal">PLZ</label><input id="dr-postal" pattern="\\d{5}" required></div>'
+      + '      <div class="field"><label for="dr-city">Ort</label><input id="dr-city" required></div>'
+      + '    </div>'
+      + '    <div class="field" style="margin-top:12px;"><label for="dr-country">Land</label>'
+      + '      <select id="dr-country"><option value="DE">Deutschland</option><option value="AT">Österreich</option><option value="CH">Schweiz</option></select>'
+      + '    </div>'
+      + '  </div>'
+
+      + '  <div class="form-section"><div class="form-section-title">Optionale Angaben</div>'
+      + '    <div class="field"><label for="dr-website">Website</label><input id="dr-website" type="url" placeholder="https://…"></div>'
+      + '    <div class="field-row" style="margin-top:12px;">'
+      + '      <div class="field"><label for="dr-vat">USt-IdNr.</label><input id="dr-vat"></div>'
+      + '      <div class="field"><label for="dr-register">Handelsregisternummer</label><input id="dr-register"></div>'
+      + '    </div>'
+      + '  </div>'
+
+      + '  <div class="form-section"><div class="form-section-title">Gewerbenachweis</div>'
+      + '    <p style="font-size:.86rem;color:var(--ink-muted);margin-bottom:10px;">Bitte laden Sie einen Nachweis Ihrer gewerblichen Tätigkeit hoch, z. B. einen Gewerbeschein.</p>'
+      + '    <div class="field"><label for="dr-document">Gewerbeschein / Gewerbenachweis hochladen</label>'
+      + '      <input id="dr-document" type="file" required accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">'
+      + '    </div>'
+      + '    <p class="form-hint">Erlaubt: PDF, JPG, PNG. Maximal 10 MB.</p>'
+      + '    <p class="form-hint">Der Nachweis wird ausschließlich zur Überprüfung Ihres Händlerkontos verwendet.</p>'
+      + '  </div>'
+
+      + '  <div class="form-section"><div class="form-section-title">Zugangsdaten</div>'
+      + '    <div class="field"><label for="dr-pw">Passwort</label><input id="dr-pw" type="password" required minlength="10" placeholder="mind. 10 Zeichen"></div>'
+      + '  </div>'
+
+      + '  <div id="dealer-register-error" class="form-hint" style="color:#B3261E;display:none;margin-top:16px;"></div>'
+
+      + '  <label class="checkline" style="margin-top:16px;"><input type="checkbox" required style="margin-top:2px;">Ich akzeptiere die <a href="#/agb">AGB</a> und die <a href="#/datenschutz">Datenschutzerklärung</a>.</label>'
+      + '  <button class="btn btn-primary btn-block" type="submit" style="margin-top:16px;">Registrierung absenden</button>'
+      + '</form>'
+      + '<p class="switch-line">Bereits registriert? <a href="#/haendler-login">Jetzt anmelden</a></p>'
+      + '</div></div>';
+  }
+
+  function haendlerRegistrationSuccessView(){
+    return '<div class="wrap"><div class="auth-wrap" style="text-align:center;padding-top:90px;">'
+      + '<span class="status-pill">Prüfung läuft</span>'
+      + '<h1 style="margin-top:16px;">Vielen Dank für Ihre Registrierung.</h1>'
+      + '<p>Ihre Händlerdaten werden von Autoklick24 geprüft. Sie erhalten eine Nachricht, sobald Ihr Händlerkonto freigeschaltet wurde.</p>'
+      + '<p class="switch-line"><a href="#/haendler-login">Zum Händlerlogin</a></p>'
+      + '</div></div>';
+  }
+
+  var DEALER_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+  var DEALER_DOCUMENT_ALLOWED_EXT = /\.(pdf|jpe?g|png)$/i;
+
+  // Rein clientseitige Vorprüfung (Format/Größe) - es gibt auf dieser
+  // statischen Demo-Seite keinen Server, der die Datei tatsächlich
+  // entgegennehmen könnte. Bewusst kein Upload/keine Speicherung
+  // irgendwohin (siehe Kommentar oben bei haendlerLoginView).
+  window.submitHaendlerRegistration = function(event){
+    event.preventDefault();
+    var errorBox = document.getElementById('dealer-register-error');
+    var fileInput = document.getElementById('dr-document');
+    var file = fileInput && fileInput.files && fileInput.files[0];
+
+    function showError(message){
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+    }
+
+    if (!file) {
+      showError('Bitte einen Gewerbenachweis hochladen.');
+      return false;
+    }
+    if (file.size > DEALER_DOCUMENT_MAX_BYTES) {
+      showError('Die Datei ist zu groß (maximal 10 MB).');
+      return false;
+    }
+    if (!DEALER_DOCUMENT_ALLOWED_EXT.test(file.name)) {
+      showError('Ungültiges Dateiformat. Erlaubt sind PDF, JPG und PNG.');
+      return false;
+    }
+
+    errorBox.style.display = 'none';
+    location.hash = '/haendler-registrierung-erfolg';
+    return false;
+  };
+
   var routes = {
     '/': homeView,
     '/autos': function(){
@@ -1109,6 +1239,9 @@
     '/faq': function(){return placeholderView('FAQ','Eine ausführliche FAQ-Seite folgt. Erste Fragen findest du auf der Startseite.','Redaktionell offen');},
     '/anmelden': loginView,
     '/registrieren': registerView,
+    '/haendler-login': haendlerLoginView,
+    '/haendler-registrieren': haendlerRegisterView,
+    '/haendler-registrierung-erfolg': haendlerRegistrationSuccessView,
     '/impressum': function(){
       return legalView('Impressum', null, [
         ['Angaben gemäß § 5 TMG (Platzhalter)', '[Firmenname Autoklick24] · [Straße, Hausnummer] · [PLZ, Ort]'],
