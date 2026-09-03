@@ -185,6 +185,11 @@
     background:#fff;color:var(--ink);height:40px;
   }
   .filter-field select{cursor:pointer;}
+  .number-field{position:relative;}
+  .number-field input{padding-right:44px;-moz-appearance:textfield;}
+  .number-field input::-webkit-outer-spin-button,
+  .number-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .number-field .field-unit{position:absolute;right:12px;bottom:11px;font-size:.9rem;font-weight:600;color:var(--navy-500);pointer-events:none;}
   .filter-field select:disabled{cursor:not-allowed;background:var(--bg-subtle);color:var(--ink-soft);}
   .filter-actions{
     margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
@@ -585,19 +590,15 @@
   var BELIEBTE_MARKEN = ["Volkswagen", "Mercedes-Benz", "BMW", "Audi", "Škoda", "Opel", "Ford", "Toyota", "Hyundai", "Porsche"];
   var MARKEN = Object.keys(MAKE_MODELS).filter(function(m){ return m !== "Sonstige"; });
   var ANDERE_MARKEN = MARKEN.filter(function(m){ return BELIEBTE_MARKEN.indexOf(m) === -1; });
-  var PREISE = [5000,10000,15000,20000,25000,30000,40000,50000,75000,100000];
   var JAHRE = (function(){ var out=[]; for (var y=2026;y>=2010;y--) out.push(y); return out; })();
   var KMSTAENDE = [5000,10000,20000,30000,50000,75000,100000,150000,200000];
   var KRAFTSTOFFE = ["Benzin","Diesel","Elektro","Hybrid (Benzin/Elektro)","Hybrid (Diesel/Elektro)","Plug-in-Hybrid","Autogas (LPG)","Erdgas (CNG)","Wasserstoff"];
   var GETRIEBE = ["Automatik","Schaltgetriebe","Halbautomatik"];
   var KAROSSERIEFORMEN = ["Kleinwagen","Limousine","Kombi","SUV/Geländewagen/Pickup","Van/Kleinbus","Cabrio","Coupé","Sportwagen","Transporter"];
   var ZUSTAENDE = ["Gebraucht","Jahreswagen","Neu","Vorführfahrzeug","Unfallfahrzeug","Beschädigt/Reparaturbedürftig"];
-  var VORBESITZER = ["1","2","3","mehr als 3"];
   var FARBEN = ["Schwarz","Weiß","Silber","Grau","Blau","Rot","Braun","Grün","Gelb","Orange","Beige","Bronze","Gold","Violett"];
-  var LEISTUNGEN_PS = [75,100,125,150,200,250,300,400,500];
   var SITZPLAETZE = [2,3,4,5,6,7,8,9];
   var TUEREN = ["2/3","4/5"];
-  var UMWELTPLAKETTEN = ["4 (Grün)","3 (Gelb)","2 (Rot)","Keine"];
 
   var AUSSTATTUNGS_GRUPPEN = [
     {
@@ -641,6 +642,14 @@
     return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
       + '<select id="' + id + '">' + optionsHtml + '</select></div>';
   }
+  // Freie Zahleneingabe (Preis, Leistung): keine festen Stufen, mobile
+  // Zifferntastatur ueber inputMode, keine negativen Werte ueber min=0.
+  // Die Einheit steht als eigenes Element im Feld.
+  function numberField(id, label, unit){
+    return '<div class="filter-field number-field"><label for="' + id + '">' + label + '</label>'
+      + '<input id="' + id + '" type="number" inputmode="numeric" min="0" step="1" placeholder="Egal">'
+      + '<span class="field-unit" aria-hidden="true">' + unit + '</span></div>';
+  }
   function textField(id, label, placeholder){
     return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
       + '<input id="' + id + '" type="text" placeholder="' + placeholder + '"></div>';
@@ -672,7 +681,7 @@
       + '      <select id="fMarke" onchange="onMarkeChange()">' + optsMarke() + '</select></div>'
       + '      <div class="filter-field"><label for="fModell">Modell</label>'
       + '      <select id="fModell" disabled><option value="">Zuerst Marke wählen</option></select></div>'
-      +        selectField('fPreis','Preis bis', opts('Egal', PREISE, function(v){ return v.toLocaleString('de-DE') + ' €'; }))
+      +        numberField('fPreis','Preis bis', '€')
       +        selectField('fEz','Erstzulassung ab', opts('Egal', JAHRE))
       +        selectField('fKm','Kilometerstand bis', opts('Egal', KMSTAENDE, function(v){ return v.toLocaleString('de-DE') + ' km'; }))
       +        selectField('fKraftstoff','Kraftstoff', opts('Alle', KRAFTSTOFFE))
@@ -688,12 +697,10 @@
       + '        <div class="filter-grid">'
       +            selectField('fKarosserie','Karosserieform', opts('Alle', KAROSSERIEFORMEN))
       +            selectField('fZustand','Zustand', opts('Alle', ZUSTAENDE))
-      +            selectField('fPS','Leistung ab', opts('Egal', LEISTUNGEN_PS, function(v){ return v + ' PS'; }))
-      +            selectField('fHalter','Vorbesitzer (max.)', opts('Egal', VORBESITZER))
+      +            numberField('fPS','Leistung ab', 'PS')
       +            selectField('fFarbe','Außenfarbe', opts('Alle', FARBEN))
       +            selectField('fSitze','Sitzplätze', opts('Egal', SITZPLAETZE))
       +            selectField('fTueren','Türen', opts('Alle', TUEREN))
-      +            selectField('fUmwelt','Umweltplakette', opts('Alle', UMWELTPLAKETTEN))
       + '        </div>'
       + '      </div>'
       +      advancedSections
@@ -717,8 +724,10 @@
 
   // Auf window hängen: inline onclick-Attribute suchen Bezeichner global,
   // nicht im Scope dieser IIFE.
-  var SELECT_IDS = ['fMarke','fModell','fPreis','fEz','fKm','fKraftstoff','fGetriebe','fKarosserie','fZustand','fPS','fHalter','fFarbe','fSitze','fTueren','fUmwelt'];
+  var SELECT_IDS = ['fMarke','fModell','fEz','fKm','fKraftstoff','fGetriebe','fKarosserie','fZustand','fFarbe','fSitze','fTueren'];
   var TEXT_IDS = ['fOrt'];
+  // Preis und Leistung sind freie Zahleneingaben; leer = kein Filter.
+  var NUMBER_IDS = ['fPreis','fPS'];
 
   // Baureihen-Unterteilung (z. B. BMW "3er Reihe", Mercedes-Benz "C-Klasse")
   // als <optgroup> im nativen <select> - das statische Pendant zur
@@ -754,12 +763,12 @@
   var FIELD_LABELS = {
     fMarke:'Marke', fModell:'Modell', fPreis:'Preis bis', fEz:'Erstzulassung ab', fKm:'Kilometerstand bis',
     fKraftstoff:'Kraftstoff', fGetriebe:'Getriebe', fOrt:'Standort',
-    fKarosserie:'Karosserieform', fZustand:'Zustand', fPS:'Leistung ab', fHalter:'Vorbesitzer (max.)',
-    fFarbe:'Außenfarbe', fSitze:'Sitzplätze', fTueren:'Türen', fUmwelt:'Umweltplakette'
+    fKarosserie:'Karosserieform', fZustand:'Zustand', fPS:'Leistung ab',
+    fFarbe:'Außenfarbe', fSitze:'Sitzplätze', fTueren:'Türen'
   };
 
   window.resetFilterForm = function(){
-    SELECT_IDS.concat(TEXT_IDS).forEach(function(id){
+    SELECT_IDS.concat(TEXT_IDS, NUMBER_IDS).forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -773,6 +782,9 @@
     SELECT_IDS.concat(TEXT_IDS).forEach(function(id){
       if (val(id)) parts.push(FIELD_LABELS[id] + ': ' + val(id));
     });
+    // Einheit an den Wert haengen, damit die Anfrage eindeutig lesbar ist.
+    if (val('fPreis')) parts.push(FIELD_LABELS.fPreis + ': ' + Number(val('fPreis')).toLocaleString('de-DE') + ' €');
+    if (val('fPS')) parts.push(FIELD_LABELS.fPS + ': ' + val('fPS') + ' PS');
 
     var ausstattung = Array.prototype.slice.call(document.querySelectorAll('input[name="ausstattung"]:checked'))
       .map(function(cb){ return cb.value; });
