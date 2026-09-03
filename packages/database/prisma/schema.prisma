@@ -99,23 +99,40 @@ enum DealerStatus {
   PENDING
   VERIFIED
   REJECTED
+  // Antrag geprüft, aber unvollständig/unklar - Händler muss nachbessern
+  // (z. B. Gewerbenachweis unleserlich oder Firmendaten unstimmig), siehe
+  // Aufgabenstellung Händlerverifizierung Abschnitt "STATUSMODELL".
+  NEEDS_MORE_INFORMATION
   SUSPENDED
 }
 
 model Dealer {
-  id           String       @id @default(cuid())
-  ownerUserId  String       @unique
-  owner        User         @relation("DealerOwner", fields: [ownerUserId], references: [id])
-  companyName  String
-  legalForm    String?
-  contactEmail String
-  contactPhone String
-  website      String?
-  vatId        String?
-  description  String?
-  logoUrl      String?
-  status       DealerStatus @default(PENDING)
-  verifiedAt   DateTime?
+  id                       String       @id @default(cuid())
+  ownerUserId              String       @unique
+  owner                    User         @relation("DealerOwner", fields: [ownerUserId], references: [id])
+  companyName              String
+  legalForm                String?
+  // Ansprechpartner - getrennt vom (ggf. abweichenden) Kunden-Account des
+  // Inhabers, siehe Aufgabenstellung "Ansprechpartner".
+  contactFirstName         String
+  contactLastName          String
+  contactEmail             String
+  contactPhone             String
+  website                  String?
+  vatId                    String?
+  commercialRegisterNumber String?
+  description              String?
+  logoUrl                  String?
+  status                   DealerStatus @default(PENDING)
+
+  // Nachvollziehbarkeit des Prüf-Workflows (siehe Aufgabenstellung
+  // "PENDING_VERIFICATION" -> Prüfung -> Freigabe/Rückfrage). verifiedBy
+  // speichert bewusst nur die User-ID (kein FK) - analog zu AuditLog.userId,
+  // damit ein gelöschter Staff-Account die Historie nicht zerstört.
+  verificationSubmittedAt DateTime?
+  verifiedAt              DateTime?
+  verifiedBy              String?
+  rejectionReason         String?
 
   addressId String?
   address   Address? @relation(fields: [addressId], references: [id])
@@ -123,10 +140,47 @@ model Dealer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  employees DealerEmployee[]
+  employees             DealerEmployee[]
+  verificationDocuments DealerVerificationDocument[]
 
   @@index([status])
   @@map("dealers")
+}
+
+enum DealerVerificationDocumentType {
+  TRADE_LICENSE
+  COMMERCIAL_REGISTER_EXTRACT
+  OTHER
+}
+
+/**
+ * Gewerbenachweis & Co. NIEMALS über eine öffentliche URL ausliefern (siehe
+ * Aufgabenstellung Abschnitt "GEWERBESCHEIN SICHER SPEICHERN"): storageKey
+ * ist nur ein Schlüssel für den privaten StorageProvider
+ * (@autoklick24/providers), keine abrufbare Adresse. Zugriff ausschließlich
+ * über einen serverseitigen, rollenbeschränkten Endpunkt (ADMIN/STAFF oder
+ * der Händler selbst für den eigenen Upload).
+ */
+model DealerVerificationDocument {
+  id       String @id @default(cuid())
+  dealerId String
+  dealer   Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+
+  documentType DealerVerificationDocumentType @default(TRADE_LICENSE)
+  // Zufälliger Storage-Key (siehe StorageProvider.getSignedUploadUrl) -
+  // NICHT der Originaldateiname, um keine personenbezogenen Daten in Pfaden
+  // zu tragen (z. B. "gewerbeschein-max-mustermann.pdf").
+  storageKey       String
+  originalFileName String
+  mimeType         String
+  fileSize         Int
+
+  uploadedAt DateTime  @default(now())
+  reviewedAt DateTime?
+  reviewedBy String?
+
+  @@index([dealerId])
+  @@map("dealer_verification_documents")
 }
 
 enum DealerEmployeeRole {

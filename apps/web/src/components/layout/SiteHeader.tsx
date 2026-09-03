@@ -11,7 +11,7 @@ export function SiteHeader() {
 
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
-      <Container className="flex h-[82px] items-center justify-between gap-4">
+      <Container className="flex h-[92px] items-center justify-between gap-4">
         <Autoklick24Brand size="lg" />
 
         <nav className="hidden items-center gap-4 min-[1320px]:flex" aria-label="Hauptnavigation">
@@ -19,7 +19,7 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-base font-medium transition-colors"
+              className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-[1.0625rem] font-medium transition-colors"
             >
               {link.label}
             </Link>
@@ -28,22 +28,10 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-3 min-[1320px]:flex">
           <Link
-            href="/favoriten"
-            className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-base font-medium transition-colors"
-          >
-            Favoriten
-          </Link>
-          <Link
             href="/anmelden"
-            className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-base font-medium transition-colors"
+            className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-[1.0625rem] font-medium transition-colors"
           >
             Anmelden
-          </Link>
-          <Link
-            href="/auto-verkaufen"
-            className="bg-brand-500 shadow-card hover:bg-brand-600 whitespace-nowrap rounded-full px-5 py-2.5 text-base font-semibold text-white transition-colors"
-          >
-            Auto verkaufen
           </Link>
         </div>
 
@@ -94,25 +82,11 @@ export function SiteHeader() {
             ))}
             <div className="border-navy-100 mt-2 flex flex-col gap-2 border-t pt-3">
               <Link
-                href="/favoriten"
-                className="text-navy-700 hover:bg-navy-50 rounded-lg px-3 py-2.5 text-sm font-medium"
-                onClick={() => setMobileOpen(false)}
-              >
-                Favoriten
-              </Link>
-              <Link
                 href="/anmelden"
                 className="text-navy-700 hover:bg-navy-50 rounded-lg px-3 py-2.5 text-sm font-medium"
                 onClick={() => setMobileOpen(false)}
               >
                 Anmelden
-              </Link>
-              <Link
-                href="/auto-verkaufen"
-                className="bg-brand-500 rounded-full px-4 py-2.5 text-center text-sm font-semibold text-white"
-                onClick={() => setMobileOpen(false)}
-              >
-                Auto verkaufen
               </Link>
             </div>
           </Container>

@@ -89,9 +89,12 @@ async function main() {
     create: {
       ownerUserId: dealerOwner.id,
       companyName: `${DEMO_MARKER} Beispiel Automobile GmbH`,
+      contactFirstName: "Julia",
+      contactLastName: "Beispielhändler",
       contactEmail: "haendler@demo.autoklick24.local",
       contactPhone: "+49 221 0000000",
       status: DealerStatus.VERIFIED,
+      verificationSubmittedAt: new Date(),
       verifiedAt: new Date(),
       addressId: dealerAddress.id,
       employees: {

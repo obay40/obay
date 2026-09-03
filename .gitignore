@@ -15,6 +15,10 @@ coverage/
 # prisma
 packages/database/generated/
 
+# private, nicht-oeffentliche Uploads (Gewerbenachweise etc.) - siehe
+# apps/web/src/lib/dealer-verification-storage.ts
+.private-storage/
+
 # logs
 *.log
 npm-debug.log*

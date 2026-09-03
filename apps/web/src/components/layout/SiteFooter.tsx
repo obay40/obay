@@ -29,7 +29,7 @@ const columns: FooterColumn[] = [
     title: "Händler",
     links: [
       { href: "/haendler", label: "Händler werden" },
-      { href: "/anmelden", label: "Händlerlogin" },
+      { href: "/haendler/login", label: "Händlerlogin" },
     ],
   },
   {

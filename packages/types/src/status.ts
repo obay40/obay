@@ -8,6 +8,7 @@ export const DealerStatus = {
   PENDING: "PENDING",
   VERIFIED: "VERIFIED",
   REJECTED: "REJECTED",
+  NEEDS_MORE_INFORMATION: "NEEDS_MORE_INFORMATION",
   SUSPENDED: "SUSPENDED",
 } as const;
 export type DealerStatus = (typeof DealerStatus)[keyof typeof DealerStatus];

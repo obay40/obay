@@ -22,8 +22,8 @@ const SIZES = {
   sm: { symbol: "h-9 w-9", word: "text-[1.15rem]" },
   /** Standard (Footer): 40px mobil, 48px ab sm. */
   md: { symbol: "h-10 w-10 sm:h-12 sm:w-12", word: "text-[1.3rem] sm:text-[1.55rem]" },
-  /** Header: 44px mobil, 56px ab sm - Wortmarke 20,8px mobil, 26px ab sm. */
-  lg: { symbol: "h-11 w-11 sm:h-14 sm:w-14", word: "text-[1.3rem] sm:text-[1.625rem]" },
+  /** Header: 48px mobil, 64px ab sm - Wortmarke 24px mobil, 30px ab sm. */
+  lg: { symbol: "h-12 w-12 sm:h-16 sm:w-16", word: "text-[1.5rem] sm:text-[1.875rem]" },
 } as const;
 
 export function Autoklick24Brand({

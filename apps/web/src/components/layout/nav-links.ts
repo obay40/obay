@@ -9,5 +9,5 @@ export const primaryNavLinks: NavLink[] = [
   { href: "/auto-verkaufen", label: "Auto verkaufen" },
   { href: "/auto-vermitteln", label: "Auto vermitteln" },
   { href: "/auto-inserieren", label: "Auto inserieren" },
-  { href: "/haendler", label: "Für Händler" },
+  { href: "/haendler/login", label: "Händlerlogin" },
 ];
