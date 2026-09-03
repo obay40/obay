@@ -11,10 +11,22 @@ export function SiteHeader() {
 
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-[90px] w-full max-w-[1440px] items-center justify-between gap-4 px-5 sm:h-[132px] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-        <Autoklick24Brand size="lg" />
+      {/*
+        Eigener, voller Header-Container statt des sitebreiten Container-
+        Bausteins: kein max-width, damit die Marke bei jeder Desktopbreite
+        am tatsächlichen Browserrand (nur Padding) verankert bleibt statt
+        in einer zentrierten Box zu "schwimmen" - Container.tsx bleibt für
+        den Rest der Seite unangetastet.
+        Grid (auto 1fr auto) statt flex justify-between: Brand links,
+        Navigation zentriert im mittleren Bereich, Anmelden rechts.
+      */}
+      <div className="grid h-[90px] w-full grid-cols-[auto_1fr_auto] items-center px-5 sm:h-[132px] sm:px-6 lg:px-8 2xl:px-10 min-[1800px]:px-12">
+        <Autoklick24Brand size="lg" className="col-start-1" />
 
-        <nav className="hidden items-center gap-5 min-[1300px]:flex" aria-label="Hauptnavigation">
+        <nav
+          className="col-start-2 hidden min-[1320px]:flex min-[1320px]:justify-self-center min-[1320px]:items-center min-[1320px]:gap-7"
+          aria-label="Hauptnavigation"
+        >
           {primaryNavLinks.map((link) => (
             <Link
               key={link.href}
@@ -26,7 +38,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 min-[1300px]:flex">
+        <div className="col-start-3 hidden min-[1320px]:flex min-[1320px]:items-center min-[1320px]:justify-self-end">
           <Link
             href="/anmelden"
             className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-lg font-medium transition-colors"
@@ -37,7 +49,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 min-[1300px]:hidden"
+          className="text-navy-700 col-start-3 inline-flex items-center justify-center justify-self-end rounded-lg p-2 min-[1320px]:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
@@ -66,7 +78,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <nav
           id="mobile-nav"
-          className="border-navy-100 border-t bg-white min-[1300px]:hidden"
+          className="border-navy-100 border-t bg-white min-[1320px]:hidden"
           aria-label="Mobile Navigation"
         >
           <Container className="flex flex-col gap-1 py-3">

@@ -30,7 +30,7 @@ const SIZES = {
   lg: {
     symbol: "h-[60px] w-[60px] sm:h-[102px] sm:w-[102px]",
     word: "text-[1.625rem] sm:text-[2.75rem]",
-    gap: "gap-3 sm:gap-5",
+    gap: "gap-3 sm:gap-4",
   },
 } as const;
 
