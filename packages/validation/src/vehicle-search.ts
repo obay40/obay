@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   FuelType,
+  isValidGermanLocationInput,
   VEHICLE_SEARCH_RADIUS_MAX_KM,
   VEHICLE_SEARCH_RADIUS_MIN_KM,
   type VehicleSearchFilters,
@@ -65,11 +66,16 @@ export function buildVehicleSearchParams(filters: VehicleSearchFilters): URLSear
     params.set(SEARCH_PARAM_KEYS.powerFromPs, String(filters.powerFromPs));
   if (filters.powerToPs) params.set(SEARCH_PARAM_KEYS.powerToPs, String(filters.powerToPs));
   if (filters.location) params.set(SEARCH_PARAM_KEYS.location, filters.location);
-  // Umkreis nur zusammen mit einem Ort in die URL - ohne Ort ist er
-  // wirkungslos (siehe VehicleSearchFilters.radiusKm). Bewusst !== undefined
-  // statt Truthy-Check: 0 km ist ein echter, eigener Wert ("nur exakter
-  // Ort") und darf nicht wie ein leeres Feld behandelt werden.
-  if (filters.location && filters.radiusKm !== undefined)
+  // Umkreis nur zusammen mit einem GÜLTIGEN Ort in die URL - ohne echten
+  // Standort ist er wirkungslos (siehe VehicleSearchFilters.radiusKm).
+  // Bewusst !== undefined statt Truthy-Check: 0 km ist ein echter, eigener
+  // Wert ("nur exakter Ort") und darf nicht wie ein leeres Feld behandelt
+  // werden.
+  if (
+    filters.location &&
+    isValidGermanLocationInput(filters.location) &&
+    filters.radiusKm !== undefined
+  )
     params.set(SEARCH_PARAM_KEYS.radiusKm, String(filters.radiusKm));
   for (const fuel of filters.fuelTypes ?? []) {
     params.append(SEARCH_PARAM_KEYS.fuelTypes, fuel);

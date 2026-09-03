@@ -89,6 +89,29 @@ export const VEHICLE_SEARCH_RADIUS_STEP_KM = 5;
 export const VEHICLE_SEARCH_RADIUS_DEFAULT_KM = 50;
 
 /**
+ * Erkennt eine gültige deutsche PLZ (5 Ziffern) im Ort-/PLZ-Freitextfeld der
+ * Fahrzeugsuche - als eigenständiger Wert ("50667") oder eingebettet vor/nach
+ * einem Ortsnamen ("50667 Köln"). \b sorgt dafür, dass eine zu lange
+ * Ziffernfolge (z. B. aus Versehen eine Telefonnummer) NICHT als Teiltreffer
+ * durchgeht: eine 10-stellige Zahl hat innerhalb der Ziffernfolge keine
+ * Wortgrenze, an der ein 5-stelliges Teilstück isoliert matchen könnte.
+ *
+ * Für freie Ortsnamen ohne PLZ gibt es bewusst (noch) keine Erkennung:
+ * TODO: echten Geocoding-/Autocomplete-Provider anbinden (siehe
+ * packages/providers), der Orte wie "Köln" gegen echte Geodaten auflöst.
+ * Bis dahin gilt ein reiner Ortsname allein nicht als validiert - eine
+ * Heuristik wie "mindestens 3 Buchstaben" wäre erfundene Ortsvalidierung
+ * ohne echte Grundlage.
+ *
+ * Wird sowohl in @autoklick24/validation (Query-Parameter-Serialisierung)
+ * als auch in apps/web (Sichtbarkeit des Umkreis-Reglers) verwendet, damit
+ * beide Stellen exakt denselben Begriff von "gültiger Standort" haben.
+ */
+export function isValidGermanLocationInput(value: string): boolean {
+  return /\b\d{5}\b/.test(value.trim());
+}
+
+/**
  * `baseUrl` ist für eine künftige App gedacht (volle URL nötig); im
  * Next.js-Web-Client bleibt es leer, ein relativer Pfad genügt.
  */

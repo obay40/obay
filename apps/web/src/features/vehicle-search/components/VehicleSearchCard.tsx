@@ -13,6 +13,7 @@ import { LocationInput } from "./LocationInput";
 import { RadiusSlider } from "./RadiusSlider";
 import { FuelTypeChips } from "./FuelTypeChips";
 import {
+  isValidGermanLocationInput,
   VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
   VEHICLE_SEARCH_RADIUS_MIN_KM,
   VEHICLE_SEARCH_RADIUS_MAX_KM,
@@ -48,6 +49,11 @@ export function VehicleSearchCard() {
     search.filters.makeSlug,
   );
   const popularMakes = manufacturers.filter((manufacturer) => manufacturer.isPopular);
+  // Slider erst bei erkanntem Standort (siehe isValidGermanLocationInput) -
+  // nicht schon bei jeder Texteingabe. Aus filters.location abgeleitet statt
+  // separat gespeichert, damit UI-Sichtbarkeit und Query-Gate (siehe
+  // buildVehicleSearchParams) nie auseinanderlaufen können.
+  const locationIsValid = isValidGermanLocationInput(search.filters.location ?? "");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -104,8 +110,11 @@ export function VehicleSearchCard() {
             DOM-Reihenfolge = Mobile-Reihenfolge (Preis vor Kilometer, siehe
             Anforderung für Smartphones). Ab sm: wird per order-* auf die für
             Desktop gewünschte Reihenfolge (Kilometer vor Preis) umsortiert.
+            Ort/PLZ ist jetzt eine eigene Zeile darunter (Umkreis erscheint
+            rechts daneben statt in dieser Zeile), deshalb hier nur noch drei
+            Felder - lg:grid-cols-3 füllt die Zeile ohne Lücke.
           */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <NumberField
               id="vehicle-search-price-from"
               label="Preis von"
@@ -133,16 +142,22 @@ export function VehicleSearchCard() {
               placeholder="Beliebig"
               className="sm:order-1"
             />
-            <div className="flex flex-col gap-3 sm:order-4">
-              <LocationInput
-                value={search.filters.location ?? ""}
-                onChange={search.setLocation}
-              />
-              {/*
-                Der Hook haelt radiusKm immer gesetzt (Standard siehe
-                useVehicleSearch); der Fallback hier ist nur fuer TypeScript,
-                der Filtertyp selbst laesst radiusKm optional.
-              */}
+          </div>
+
+          {/*
+            Ort/PLZ links, Umkreis rechts daneben - nicht untereinander (siehe
+            Aufgabenstellung). Auf Mobile (< sm) untereinander, weil nicht
+            genug Breite für einen brauchbaren Regler daneben wäre. Ort hat
+            eine feste Breite (sm:basis-[45%]), damit er beim Ein-/Ausblenden
+            des Reglers nicht springt - nur der Regler blendet dezent ein.
+          */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <LocationInput
+              value={search.filters.location ?? ""}
+              onChange={search.setLocation}
+              className="sm:shrink-0 sm:basis-[45%]"
+            />
+            {locationIsValid && (
               <RadiusSlider
                 id="vehicle-search-radius"
                 value={search.filters.radiusKm ?? VEHICLE_SEARCH_RADIUS_DEFAULT_KM}
@@ -150,14 +165,14 @@ export function VehicleSearchCard() {
                 min={VEHICLE_SEARCH_RADIUS_MIN_KM}
                 max={VEHICLE_SEARCH_RADIUS_MAX_KM}
                 step={VEHICLE_SEARCH_RADIUS_STEP_KM}
+                className="motion-safe:animate-[ak-fade-in_180ms_ease-out] sm:flex-1"
               />
-            </div>
+            )}
           </div>
 
           {/*
             Letzte Filterzeile: Leistung ab/bis und die Kraftstoff-Chips
-            teilen sich die vier Spalten (Umkreis sitzt jetzt direkt unter
-            dem Ort-Feld in der Zeile darüber, siehe Aufgabenstellung).
+            teilen sich die vier Spalten.
           */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <NumberField

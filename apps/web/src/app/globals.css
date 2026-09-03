@@ -92,3 +92,19 @@ body {
     0 0 0 4px rgba(43, 111, 224, 0.22),
     0 1px 4px rgba(10, 22, 38, 0.25);
 }
+
+/*
+ * Dezentes Einblenden des Umkreis-Reglers, sobald ein gültiger Ort/PLZ
+ * erkannt wird (VehicleSearchCard). Nur über motion-safe: angewendet -
+ * respektiert damit automatisch prefers-reduced-motion.
+ */
+@keyframes ak-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

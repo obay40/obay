@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  isValidGermanLocationInput,
   VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
   type FuelType,
   type VehicleSearchFilters,
@@ -89,7 +90,21 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
   }
 
   function setLocation(location: string) {
-    setFilters((prev) => ({ ...prev, location: location.trim() ? location : undefined }));
+    const trimmed = location.trim();
+    setFilters((prev) => ({
+      ...prev,
+      location: trimmed ? location : undefined,
+      // Wird der Ort ungültig (oder gelöscht), geht der Umkreis intern
+      // wieder auf den Standard zurück - kein "alter" Radius darf unbemerkt
+      // aktiv bleiben, wenn später erneut ein gültiger Ort eingegeben wird
+      // (siehe Aufgabenstellung Umkreis-Regler, Abschnitt "wenn Ort wieder
+      // gelöscht wird"). Solange der Ort gültig bleibt, bleibt ein bereits
+      // gewählter Radius unangetastet.
+      radiusKm:
+        trimmed && isValidGermanLocationInput(trimmed)
+          ? prev.radiusKm
+          : VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
+    }));
   }
 
   function setFuelTypes(fuelTypes: FuelType[]) {

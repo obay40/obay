@@ -1,6 +1,6 @@
 import { PagePlaceholder } from "@/components/ui/PagePlaceholder";
 import { Container } from "@/components/ui/Container";
-import { FuelType } from "@autoklick24/types";
+import { FuelType, isValidGermanLocationInput } from "@autoklick24/types";
 import { parseVehicleSearchParams } from "@autoklick24/validation";
 import {
   findManufacturerBySlug,
@@ -74,7 +74,11 @@ export default async function VehicleMarketplacePage({
   // Ort ist der Wert wirkungslos, deshalb hier zusätzlich an filters.location
   // gebunden (buildVehicleSearchParams lässt ihn ohne Ort gar nicht erst in
   // die URL).
-  if (filters.location && filters.radiusKm !== undefined) {
+  if (
+    filters.location &&
+    isValidGermanLocationInput(filters.location) &&
+    filters.radiusKm !== undefined
+  ) {
     summary.push(
       filters.radiusKm === 0
         ? "Umkreis: nur exakter Ort/PLZ-Bereich"
