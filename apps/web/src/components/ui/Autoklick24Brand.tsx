@@ -19,11 +19,19 @@ const SYMBOL_SRC = "/brand/autoklick24-symbol.png";
 const NAVY = "#0B1F3F";
 
 const SIZES = {
-  sm: { symbol: "h-9 w-9", word: "text-[1.15rem]" },
+  sm: { symbol: "h-9 w-9", word: "text-[1.15rem]", gap: "gap-2.5 sm:gap-3" },
   /** Standard (Footer): 40px mobil, 48px ab sm. */
-  md: { symbol: "h-10 w-10 sm:h-12 sm:w-12", word: "text-[1.3rem] sm:text-[1.55rem]" },
-  /** Header: 48px mobil, 64px ab sm - Wortmarke 24px mobil, 30px ab sm. */
-  lg: { symbol: "h-12 w-12 sm:h-16 sm:w-16", word: "text-[1.5rem] sm:text-[1.875rem]" },
+  md: {
+    symbol: "h-10 w-10 sm:h-12 sm:w-12",
+    word: "text-[1.3rem] sm:text-[1.55rem]",
+    gap: "gap-2.5 sm:gap-3",
+  },
+  /** Header: 60px mobil, 92px ab sm - Wortmarke 26px mobil, 42px ab sm. */
+  lg: {
+    symbol: "h-[60px] w-[60px] sm:h-[92px] sm:w-[92px]",
+    word: "text-[1.625rem] sm:text-[2.625rem]",
+    gap: "gap-3 sm:gap-4",
+  },
 } as const;
 
 export function Autoklick24Brand({
@@ -44,7 +52,7 @@ export function Autoklick24Brand({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2.5 sm:gap-3 ${className}`}
+      className={`inline-flex items-center ${s.gap} ${className}`}
       aria-label="Autoklick24"
     >
       {/*

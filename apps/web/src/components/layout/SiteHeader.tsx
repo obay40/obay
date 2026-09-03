@@ -11,25 +11,25 @@ export function SiteHeader() {
 
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
-      <Container className="flex h-[92px] items-center justify-between gap-4">
+      <Container className="flex h-[90px] items-center justify-between gap-4 sm:h-[130px]">
         <Autoklick24Brand size="lg" />
 
-        <nav className="hidden items-center gap-4 min-[1320px]:flex" aria-label="Hauptnavigation">
+        <nav className="hidden items-center gap-6 min-[1500px]:flex" aria-label="Hauptnavigation">
           {primaryNavLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-[1.0625rem] font-medium transition-colors"
+              className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-lg font-medium transition-colors"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 min-[1320px]:flex">
+        <div className="hidden items-center gap-3 min-[1500px]:flex">
           <Link
             href="/anmelden"
-            className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-[1.0625rem] font-medium transition-colors"
+            className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-lg font-medium transition-colors"
           >
             Anmelden
           </Link>
@@ -37,7 +37,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 min-[1320px]:hidden"
+          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 min-[1500px]:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
@@ -66,7 +66,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <nav
           id="mobile-nav"
-          className="border-navy-100 border-t bg-white min-[1320px]:hidden"
+          className="border-navy-100 border-t bg-white min-[1500px]:hidden"
           aria-label="Mobile Navigation"
         >
           <Container className="flex flex-col gap-1 py-3">
