@@ -60,6 +60,7 @@ export default async function VehicleMarketplacePage({
   if (filters.mileageTo)
     summary.push(`Kilometerstand bis ${filters.mileageTo.toLocaleString("de-DE")} km`);
   if (filters.priceTo) summary.push(`Preis bis ${filters.priceTo.toLocaleString("de-DE")} €`);
+  if (filters.powerFromPs) summary.push(`Leistung ab ${filters.powerFromPs} PS`);
   if (filters.location) summary.push(`Standort: ${filters.location}`);
   if (filters.radiusKm) summary.push(`Umkreis: ${filters.radiusKm} km`);
   if (filters.fuelTypes?.length) {

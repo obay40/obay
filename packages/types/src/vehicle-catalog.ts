@@ -61,6 +61,13 @@ export interface VehicleSearchFilters {
   yearFrom?: number;
   mileageTo?: number;
   priceTo?: number;
+  /**
+   * Mindestleistung in PS. PS ist bewusst auch die interne Einheit:
+   * das Projekt fuehrt an keiner Stelle kW, eine Umrechnung waere
+   * also eine Fehlerquelle ohne Nutzen. Der URL-Parameter heisst
+   * "powerFrom".
+   */
+  powerFromPs?: number;
   location?: string;
   radiusKm?: number;
   fuelTypes?: FuelType[];

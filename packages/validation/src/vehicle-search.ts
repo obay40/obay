@@ -16,6 +16,7 @@ export const vehicleSearchFiltersSchema = z.object({
   yearFrom: z.coerce.number().int().min(1980).max(2100).optional(),
   mileageTo: z.coerce.number().int().min(0).max(2_000_000).optional(),
   priceTo: z.coerce.number().int().min(0).max(100_000_000).optional(),
+  powerFromPs: z.coerce.number().int().min(0).max(10_000).optional(),
   location: z.string().trim().min(1).max(120).optional(),
   radiusKm: z.coerce.number().int().min(0).max(20_000).optional(),
   fuelTypes: z.array(z.enum(fuelTypeValues)).max(fuelTypeValues.length).optional(),
@@ -28,6 +29,7 @@ const SEARCH_PARAM_KEYS = {
   yearFrom: "yearFrom",
   mileageTo: "mileageTo",
   priceTo: "priceTo",
+  powerFromPs: "powerFrom",
   location: "location",
   radiusKm: "radiusKm",
   fuelTypes: "fuel",
@@ -43,6 +45,8 @@ export function buildVehicleSearchParams(filters: VehicleSearchFilters): URLSear
   if (filters.yearFrom) params.set(SEARCH_PARAM_KEYS.yearFrom, String(filters.yearFrom));
   if (filters.mileageTo) params.set(SEARCH_PARAM_KEYS.mileageTo, String(filters.mileageTo));
   if (filters.priceTo) params.set(SEARCH_PARAM_KEYS.priceTo, String(filters.priceTo));
+  if (filters.powerFromPs)
+    params.set(SEARCH_PARAM_KEYS.powerFromPs, String(filters.powerFromPs));
   if (filters.location) params.set(SEARCH_PARAM_KEYS.location, filters.location);
   if (filters.radiusKm) params.set(SEARCH_PARAM_KEYS.radiusKm, String(filters.radiusKm));
   for (const fuel of filters.fuelTypes ?? []) {
@@ -68,6 +72,7 @@ export function parseVehicleSearchParams(
     yearFrom: get(SEARCH_PARAM_KEYS.yearFrom),
     mileageTo: get(SEARCH_PARAM_KEYS.mileageTo),
     priceTo: get(SEARCH_PARAM_KEYS.priceTo),
+    powerFromPs: get(SEARCH_PARAM_KEYS.powerFromPs),
     location: get(SEARCH_PARAM_KEYS.location),
     radiusKm: get(SEARCH_PARAM_KEYS.radiusKm),
     fuelTypes: getAll(SEARCH_PARAM_KEYS.fuelTypes),

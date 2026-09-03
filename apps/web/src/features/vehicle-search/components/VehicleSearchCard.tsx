@@ -3,22 +3,17 @@
 import { useVehicleSearch } from "../hooks/useVehicleSearch";
 import { useVehicleManufacturers } from "../hooks/useVehicleManufacturers";
 import { useVehicleModelGroups } from "../hooks/useVehicleModelGroups";
-import {
-  buildYearOptions,
-  buildMileageOptions,
-  buildPriceOptions,
-  buildRadiusOptions,
-} from "../lib/options";
+import { buildYearOptions, buildMileageOptions, buildRadiusOptions } from "../lib/options";
 import { MakeCombobox } from "./MakeCombobox";
 import { ModelGroupCombobox } from "./ModelGroupCombobox";
 import { ModelCombobox } from "./ModelCombobox";
 import { SelectField } from "./SelectField";
+import { NumberField } from "./NumberField";
 import { LocationInput } from "./LocationInput";
 import { FuelTypeChips } from "./FuelTypeChips";
 
 const YEAR_OPTIONS = buildYearOptions();
 const MILEAGE_OPTIONS = buildMileageOptions();
-const PRICE_OPTIONS = buildPriceOptions();
 const RADIUS_OPTIONS = buildRadiusOptions();
 
 const searchIcon = (
@@ -105,13 +100,13 @@ export function VehicleSearchCard() {
             Desktop gewünschte Reihenfolge (Kilometer vor Preis) umsortiert.
           */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <SelectField
+            <NumberField
               id="vehicle-search-price"
               label="Preis bis"
               value={search.filters.priceTo ?? ""}
               onChange={search.setPriceTo}
-              options={PRICE_OPTIONS}
-              placeholder="Beliebig"
+              unit="€"
+              max={100_000_000}
               className="sm:order-2"
             />
             <SelectField
@@ -139,7 +134,26 @@ export function VehicleSearchCard() {
             />
           </div>
 
-          <FuelTypeChips value={search.filters.fuelTypes ?? []} onChange={search.setFuelTypes} />
+          {/*
+            Leistung teilt sich die Zeile mit den Kraftstoff-Chips: allein in
+            einer 4-Spalten-Zeile stünde das Feld sonst mit drei leeren
+            Spalten daneben. Die bestehenden Filterzeilen bleiben unberührt.
+          */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <NumberField
+              id="vehicle-search-power"
+              label="Leistung ab"
+              value={search.filters.powerFromPs ?? ""}
+              onChange={search.setPowerFromPs}
+              unit="PS"
+              max={10_000}
+            />
+            <FuelTypeChips
+              value={search.filters.fuelTypes ?? []}
+              onChange={search.setFuelTypes}
+              className="items-center sm:col-span-1 lg:col-span-3"
+            />
+          </div>
 
           <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">

@@ -54,6 +54,10 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     setFilters((prev) => ({ ...prev, priceTo: priceTo === "" ? undefined : priceTo }));
   }
 
+  function setPowerFromPs(powerFromPs: number | "") {
+    setFilters((prev) => ({ ...prev, powerFromPs: powerFromPs === "" ? undefined : powerFromPs }));
+  }
+
   function setRadiusKm(radiusKm: number | "") {
     setFilters((prev) => ({ ...prev, radiusKm: radiusKm === "" ? undefined : radiusKm }));
   }
@@ -84,6 +88,7 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     setYearFrom,
     setMileageTo,
     setPriceTo,
+    setPowerFromPs,
     setRadiusKm,
     setLocation,
     setFuelTypes,
