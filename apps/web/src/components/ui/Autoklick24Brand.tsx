@@ -20,9 +20,10 @@ const NAVY = "#0B1F3F";
 
 const SIZES = {
   sm: { symbol: "h-9 w-9", word: "text-[1.15rem]" },
-  /** Standard: 40px mobil, 48px ab sm. */
+  /** Standard (Footer): 40px mobil, 48px ab sm. */
   md: { symbol: "h-10 w-10 sm:h-12 sm:w-12", word: "text-[1.3rem] sm:text-[1.55rem]" },
-  lg: { symbol: "h-11 w-11 sm:h-[54px] sm:w-[54px]", word: "text-[1.5rem] sm:text-[1.8rem]" },
+  /** Header: 44px mobil, 56px ab sm - Wortmarke 20,8px mobil, 26px ab sm. */
+  lg: { symbol: "h-11 w-11 sm:h-14 sm:w-14", word: "text-[1.3rem] sm:text-[1.625rem]" },
 } as const;
 
 export function Autoklick24Brand({
