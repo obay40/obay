@@ -69,7 +69,17 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  .header-row{height:90px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  /* Eigener, breiterer Container nur fuer den Header - bewusst NICHT .wrap
+     (max-width 1180px), das ist sitebreit fuer Hero/Sections/Footer im
+     Einsatz und darf unangetastet bleiben (Aufgabe betrifft nur den
+     Header). */
+  .header-row{
+    height:90px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+    max-width:1440px;margin:0 auto;padding:0 20px;
+  }
+  @media (min-width:1024px){.header-row{padding:0 32px;}}
+  @media (min-width:1280px){.header-row{padding:0 40px;}}
+  @media (min-width:1536px){.header-row{padding:0 48px;}}
   .logo{display:flex;align-items:center;gap:12px;}
   .footer-logo{display:flex;align-items:center;gap:12px;}
   .logo-mark{width:60px;height:60px;flex-shrink:0;}
@@ -78,12 +88,12 @@
   .logo-word b{font-weight:800;color:#0B1F3F;}
   .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
   @media (min-width:640px){
-    .header-row{height:131px;}
-    .logo{gap:16px;}
-    .logo-mark{width:92px;height:92px;}
-    .logo-word{font-size:2.625rem;}
+    .header-row{height:132px;}
+    .logo{gap:20px;}
+    .logo-mark{width:102px;height:102px;}
+    .logo-word{font-size:2.75rem;}
   }
-  nav.primary{display:none;align-items:center;gap:24px;}
+  nav.primary{display:none;align-items:center;gap:20px;}
   nav.primary a{font-size:1.125rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
   nav.primary a:hover{color:var(--brand-600);}
   nav.primary a.active{color:var(--brand-600);border-color:var(--brand-500);}
@@ -116,7 +126,7 @@
   #mobile-nav a:hover{background:var(--bg-subtle);}
   #mobile-nav .mn-actions{margin-top:8px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
 
-  @media (min-width:1400px){
+  @media (min-width:1300px){
     nav.primary{display:flex;}
     .header-actions{display:flex;}
     .burger{display:none;}
@@ -369,7 +379,7 @@
 <body>
 
 <header class="site">
-  <div class="wrap header-row">
+  <div class="header-row">
     <a href="#/" class="logo"><img src="./assets/autoklick24-symbol.png" class="logo-mark" alt="Autoklick24" width="302" height="302"><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span></span></a>
 
     <nav class="primary" id="primary-nav">
