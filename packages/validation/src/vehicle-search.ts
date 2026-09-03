@@ -23,8 +23,8 @@ export const vehicleSearchFiltersSchema = z.object({
   mileageTo: z.coerce.number().int().min(0).max(2_000_000).optional(),
   priceFrom: z.coerce.number().int().min(0).max(100_000_000).optional(),
   priceTo: z.coerce.number().int().min(0).max(100_000_000).optional(),
-  powerFromPs: z.coerce.number().int().min(0).max(10_000).optional(),
-  powerToPs: z.coerce.number().int().min(0).max(10_000).optional(),
+  powerFromKw: z.coerce.number().int().min(0).max(10_000).optional(),
+  powerToKw: z.coerce.number().int().min(0).max(10_000).optional(),
   location: z.string().trim().min(1).max(120).optional(),
   // 0 ist ein gueltiger Wert ("nur exakter Ort"), siehe VehicleSearchFilters.radiusKm.
   radiusKm: z.coerce
@@ -44,8 +44,8 @@ const SEARCH_PARAM_KEYS = {
   mileageTo: "mileageTo",
   priceFrom: "priceFrom",
   priceTo: "priceTo",
-  powerFromPs: "powerFrom",
-  powerToPs: "powerTo",
+  powerFromKw: "powerFromKw",
+  powerToKw: "powerToKw",
   location: "location",
   radiusKm: "radiusKm",
   fuelTypes: "fuel",
@@ -62,9 +62,11 @@ export function buildVehicleSearchParams(filters: VehicleSearchFilters): URLSear
   if (filters.mileageTo) params.set(SEARCH_PARAM_KEYS.mileageTo, String(filters.mileageTo));
   if (filters.priceFrom) params.set(SEARCH_PARAM_KEYS.priceFrom, String(filters.priceFrom));
   if (filters.priceTo) params.set(SEARCH_PARAM_KEYS.priceTo, String(filters.priceTo));
-  if (filters.powerFromPs)
-    params.set(SEARCH_PARAM_KEYS.powerFromPs, String(filters.powerFromPs));
-  if (filters.powerToPs) params.set(SEARCH_PARAM_KEYS.powerToPs, String(filters.powerToPs));
+  // 0 ist beim Leistungsfilter (anders als beim Umkreis) KEIN sinnvoller
+  // Filter, deshalb hier bewusst der Truthy-Check statt !== undefined.
+  if (filters.powerFromKw)
+    params.set(SEARCH_PARAM_KEYS.powerFromKw, String(filters.powerFromKw));
+  if (filters.powerToKw) params.set(SEARCH_PARAM_KEYS.powerToKw, String(filters.powerToKw));
   if (filters.location) params.set(SEARCH_PARAM_KEYS.location, filters.location);
   // Umkreis nur zusammen mit einem GÜLTIGEN Ort in die URL - ohne echten
   // Standort ist er wirkungslos (siehe VehicleSearchFilters.radiusKm).
@@ -101,8 +103,8 @@ export function parseVehicleSearchParams(
     mileageTo: get(SEARCH_PARAM_KEYS.mileageTo),
     priceFrom: get(SEARCH_PARAM_KEYS.priceFrom),
     priceTo: get(SEARCH_PARAM_KEYS.priceTo),
-    powerFromPs: get(SEARCH_PARAM_KEYS.powerFromPs),
-    powerToPs: get(SEARCH_PARAM_KEYS.powerToPs),
+    powerFromKw: get(SEARCH_PARAM_KEYS.powerFromKw),
+    powerToKw: get(SEARCH_PARAM_KEYS.powerToKw),
     location: get(SEARCH_PARAM_KEYS.location),
     radiusKm: get(SEARCH_PARAM_KEYS.radiusKm),
     fuelTypes: getAll(SEARCH_PARAM_KEYS.fuelTypes),

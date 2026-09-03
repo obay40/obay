@@ -63,14 +63,14 @@ export interface VehicleSearchFilters {
   priceFrom?: number;
   priceTo?: number;
   /**
-   * Mindestleistung in PS. PS ist bewusst auch die interne Einheit:
-   * das Projekt fuehrt an keiner Stelle kW, eine Umrechnung waere
-   * also eine Fehlerquelle ohne Nutzen. Der URL-Parameter heisst
-   * "powerFrom".
+   * Mindestleistung in kW - kW ist die interne Basiseinheit (SI-Einheit),
+   * unabhaengig davon, ob der Nutzer im UI PS oder kW eingegeben hat (siehe
+   * PowerUnit/convertPowerValue unten). Der URL-Parameter heisst
+   * "powerFromKw".
    */
-  powerFromPs?: number;
-  /** Hoechstleistung in PS, gleiche Einheit wie powerFromPs. */
-  powerToPs?: number;
+  powerFromKw?: number;
+  /** Hoechstleistung in kW, gleiche Einheit wie powerFromKw. */
+  powerToKw?: number;
   location?: string;
   radiusKm?: number;
   fuelTypes?: FuelType[];
@@ -87,6 +87,35 @@ export const VEHICLE_SEARCH_RADIUS_MIN_KM = 0;
 export const VEHICLE_SEARCH_RADIUS_MAX_KM = 200;
 export const VEHICLE_SEARCH_RADIUS_STEP_KM = 5;
 export const VEHICLE_SEARCH_RADIUS_DEFAULT_KM = 50;
+
+/** Anzeigeeinheit des Leistungsfilters (siehe PowerUnitToggle in apps/web). */
+export type PowerUnit = "PS" | "KW";
+
+export const DEFAULT_POWER_UNIT: PowerUnit = "PS";
+
+/** Umrechnungsfaktoren wie in der Aufgabenstellung vorgegeben. */
+const PS_PER_KW = 1.35962;
+const KW_PER_PS = 0.735499;
+
+/**
+ * Rechnet einen im UI eingegebenen Leistungswert (in `unit`) in die interne
+ * Basiseinheit kW um. Ganzzahlig gerundet - fuer die Anzeige reichen ganze
+ * Zahlen, siehe VehicleSearchFilters.powerFromKw.
+ */
+export function convertPowerToKw(value: number, unit: PowerUnit): number {
+  return unit === "PS" ? Math.round(value * KW_PER_PS) : Math.round(value);
+}
+
+/**
+ * Rechnet einen intern in kW gespeicherten Leistungswert für die Anzeige in
+ * `unit` um (Kehrfunktion zu convertPowerToKw). Wird beim Umschalten
+ * PS/kW verwendet, um denselben gespeicherten Wert neu zu formatieren -
+ * OHNE den gespeicherten kW-Wert selbst zu veraendern, damit wiederholtes
+ * Hin-und-Herschalten keine Rundungsfehler aufsummiert.
+ */
+export function convertKwToPowerDisplay(kw: number, unit: PowerUnit): number {
+  return unit === "PS" ? Math.round(kw * PS_PER_KW) : Math.round(kw);
+}
 
 /**
  * Erkennt eine gültige deutsche PLZ (5 Ziffern) im Ort-/PLZ-Freitextfeld der

@@ -11,6 +11,7 @@ import { SelectField } from "./SelectField";
 import { NumberField } from "./NumberField";
 import { LocationInput } from "./LocationInput";
 import { RadiusSlider } from "./RadiusSlider";
+import { PowerUnitToggle } from "./PowerUnitToggle";
 import { FuelTypeChips } from "./FuelTypeChips";
 import {
   isValidGermanLocationInput,
@@ -172,25 +173,33 @@ export function VehicleSearchCard() {
 
           {/*
             Letzte Filterzeile: Leistung ab/bis und die Kraftstoff-Chips
-            teilen sich die vier Spalten.
+            teilen sich die vier Spalten. Der PS/kW-Umschalter sitzt direkt
+            rechts neben "Leistung bis" (eigene Flex-Zeile innerhalb dieser
+            Grid-Zelle) und gilt für beide Leistungsfelder gemeinsam - eine
+            einzige Anzeigeeinheit statt zweier unabhängiger, siehe
+            useVehicleSearch (powerUnit ist gemeinsamer State).
           */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <NumberField
               id="vehicle-search-power-from"
               label="Leistung ab"
-              value={search.filters.powerFromPs ?? ""}
-              onChange={search.setPowerFromPs}
-              unit="PS"
+              value={search.powerFromDisplay}
+              onChange={search.setPowerFromDisplay}
+              unit={search.powerUnit === "PS" ? "PS" : "kW"}
               max={10_000}
             />
-            <NumberField
-              id="vehicle-search-power-to"
-              label="Leistung bis"
-              value={search.filters.powerToPs ?? ""}
-              onChange={search.setPowerToPs}
-              unit="PS"
-              max={10_000}
-            />
+            <div className="flex items-end gap-2">
+              <NumberField
+                id="vehicle-search-power-to"
+                label="Leistung bis"
+                value={search.powerToDisplay}
+                onChange={search.setPowerToDisplay}
+                unit={search.powerUnit === "PS" ? "PS" : "kW"}
+                max={10_000}
+                className="min-w-0 flex-1"
+              />
+              <PowerUnitToggle value={search.powerUnit} onChange={search.setPowerUnit} />
+            </div>
             <FuelTypeChips
               value={search.filters.fuelTypes ?? []}
               onChange={search.setFuelTypes}

@@ -61,8 +61,11 @@ export default async function VehicleMarketplacePage({
     summary.push(`Kilometerstand bis ${filters.mileageTo.toLocaleString("de-DE")} km`);
   if (filters.priceFrom) summary.push(`Preis ab ${filters.priceFrom.toLocaleString("de-DE")} €`);
   if (filters.priceTo) summary.push(`Preis bis ${filters.priceTo.toLocaleString("de-DE")} €`);
-  if (filters.powerFromPs) summary.push(`Leistung ab ${filters.powerFromPs} PS`);
-  if (filters.powerToPs) summary.push(`Leistung bis ${filters.powerToPs} PS`);
+  // kW ist die interne Basiseinheit (siehe VehicleSearchFilters.powerFromKw) -
+  // hier immer in kW anzeigen, unabhaengig davon, ob im Formular PS oder kW
+  // eingestellt war (die Anzeigeeinheit selbst wird nicht in der URL gespeichert).
+  if (filters.powerFromKw) summary.push(`Leistung ab ${filters.powerFromKw} kW`);
+  if (filters.powerToKw) summary.push(`Leistung bis ${filters.powerToKw} kW`);
   if (filters.location) summary.push(`Standort: ${filters.location}`);
   // TODO: geocoding / radius backend integration.
   // Sobald echte Fahrzeugstandorte/-koordinaten existieren (Phase 2): den

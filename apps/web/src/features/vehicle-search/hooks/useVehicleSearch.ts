@@ -3,9 +3,13 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  convertKwToPowerDisplay,
+  convertPowerToKw,
+  DEFAULT_POWER_UNIT,
   isValidGermanLocationInput,
   VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
   type FuelType,
+  type PowerUnit,
   type VehicleSearchFilters,
 } from "@autoklick24/types";
 import { buildVehicleSearchParams } from "@autoklick24/validation";
@@ -28,6 +32,12 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     ...initialFilters,
     radiusKm: initialFilters.radiusKm ?? VEHICLE_SEARCH_RADIUS_DEFAULT_KM,
   }));
+  // Nur die Anzeigeeinheit des Leistungsfilters - gespeichert wird immer in
+  // kW (filters.powerFromKw/powerToKw), das Umschalten formatiert denselben
+  // Wert nur neu (siehe convertKwToPowerDisplay) und aendert ihn nicht.
+  // Startet immer bei PS, wird nicht in der URL persistiert (siehe
+  // Aufgabenstellung Leistungsfilter, Abschnitt Query-Parameter).
+  const [powerUnit, setPowerUnit] = useState<PowerUnit>(DEFAULT_POWER_UNIT);
 
   const hasActiveFilters = useMemo(() => {
     return (Object.keys(filters) as (keyof VehicleSearchFilters)[]).some((key) => {
@@ -75,12 +85,28 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     setFilters((prev) => ({ ...prev, priceTo: priceTo === "" ? undefined : priceTo }));
   }
 
-  function setPowerFromPs(powerFromPs: number | "") {
-    setFilters((prev) => ({ ...prev, powerFromPs: powerFromPs === "" ? undefined : powerFromPs }));
+  // Nimmt den Wert entgegen, WIE ER IM UI GERADE ANGEZEIGT WIRD (also in
+  // powerUnit), rechnet ihn aber sofort in die interne Basiseinheit kW um -
+  // gespeichert wird immer kW, nie PS (siehe VehicleSearchFilters.powerFromKw).
+  // 0 ist beim Leistungsfilter kein sinnvoller Filter (anders als beim
+  // Umkreis) und wird deshalb wie ein leeres Feld behandelt.
+  function toPowerKwOrUndefined(displayValue: number | ""): number | undefined {
+    if (displayValue === "") return undefined;
+    const kw = convertPowerToKw(displayValue, powerUnit);
+    return kw > 0 ? kw : undefined;
   }
 
-  function setPowerToPs(powerToPs: number | "") {
-    setFilters((prev) => ({ ...prev, powerToPs: powerToPs === "" ? undefined : powerToPs }));
+  function setPowerFromDisplay(displayValue: number | "") {
+    setFilters((prev) => ({ ...prev, powerFromKw: toPowerKwOrUndefined(displayValue) }));
+  }
+
+  function setPowerToDisplay(displayValue: number | "") {
+    setFilters((prev) => ({ ...prev, powerToKw: toPowerKwOrUndefined(displayValue) }));
+  }
+
+  /** Formatiert einen gespeicherten kW-Wert für die aktuelle Anzeigeeinheit. */
+  function toDisplay(kw: number | undefined): number | "" {
+    return kw === undefined ? "" : convertKwToPowerDisplay(kw, powerUnit);
   }
 
   // Der Slider hat nie einen leeren Zustand (anders als die Zahlenfelder),
@@ -115,6 +141,9 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     // Umkreis geht bewusst nicht auf undefined, sondern auf seinen
     // Standardwert zurück (siehe Aufgabenstellung Umkreis-Regler, Reset).
     setFilters({ radiusKm: VEHICLE_SEARCH_RADIUS_DEFAULT_KM });
+    // Leistungswert leeren (bereits über filters oben) + Anzeigeeinheit
+    // wieder auf PS (siehe Aufgabenstellung Leistungsfilter, Reset).
+    setPowerUnit(DEFAULT_POWER_UNIT);
   }
 
   function submit(basePath = "/autos") {
@@ -132,8 +161,13 @@ export function useVehicleSearch(initialFilters: VehicleSearchFilters = {}) {
     setMileageTo,
     setPriceFrom,
     setPriceTo,
-    setPowerFromPs,
-    setPowerToPs,
+    // Leistung: powerUnit steuert nur die Anzeige, gespeichert wird immer kW.
+    powerUnit,
+    setPowerUnit,
+    powerFromDisplay: toDisplay(filters.powerFromKw),
+    powerToDisplay: toDisplay(filters.powerToKw),
+    setPowerFromDisplay,
+    setPowerToDisplay,
     setRadiusKm,
     setLocation,
     setFuelTypes,
