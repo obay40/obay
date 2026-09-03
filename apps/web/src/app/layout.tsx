@@ -16,6 +16,25 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de">
+      <head>
+        {/*
+          Schriften per <link> statt next/font: next/font lädt die Dateien zur
+          BUILD-Zeit herunter, was den Build ohne Netzzugang scheitern lässt.
+          Montserrat ist die Schrift der Wortmarke (siehe Logo.tsx), Inter die
+          Fließtextschrift (--font-sans in globals.css).
+
+          no-page-custom-font zielt auf den Pages Router ("nur eine Seite
+          betroffen"). Hier steht der Link im Root-Layout des App Routers und
+          gilt damit für jede Seite - die Regel greift nicht.
+        */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>

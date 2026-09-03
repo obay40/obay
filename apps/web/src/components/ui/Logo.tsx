@@ -2,41 +2,64 @@ import Link from "next/link";
 import { AutoklickMark } from "./AutoklickMark";
 
 /**
- * Sobald die Original-Logodatei unter /public/brand/autoklick24-logo.png
- * (oder .svg) liegt, kann sie hier per <Image> eingesetzt werden - siehe
- * public/brand/README.md. Bis dahin: als Code nachgebaute Bildmarke +
- * Wortmarke in Markenfarben, damit kein kaputtes Bild angezeigt wird.
+ * Vollständige Logo-Sperrung nach der Vorlage des Auftraggebers:
+ * Bildmarke + Wortmarke "Autoklick24" (Montserrat ExtraBold, "klick" im
+ * Blauverlauf, "Auto"/"24" in Navy) + Tagline "Auto verkaufen. Klick.
+ * Fertig.". Die Bilddatei selbst ließ sich nicht übertragen, deshalb ist die
+ * Marke als Code nachgebaut - siehe public/brand/README.md, dort steht auch,
+ * wie die Originaldatei später eingesetzt wird.
  *
- * `variant="light"` kehrt die Wortmarkenfarben für dunkle Hintergründe um
- * (z. B. SiteFooter auf navy-950) - die Bildmarke selbst bleibt gleich, sie
- * ist als eigenständige Kachel für beide Hintergründe ausgelegt.
+ * `variant="light"` dreht die dunklen Textteile auf Weiß für dunkle
+ * Hintergründe (SiteFooter auf navy-950); Bildmarke und Blautöne bleiben, sie
+ * funktionieren auf beiden Untergründen.
  */
+const NAVY = "#0B1F3F";
+
 export function Logo({
   className = "",
   variant = "dark",
   size = "md",
+  withTagline = true,
+  idSuffix = "",
 }: {
   className?: string;
   variant?: "dark" | "light";
-  /** "md" (Standard, z. B. Footer) oder "lg" (Header - etwas größer, damit die Marke präsenter wirkt). */
+  /** "md" (Footer) oder "lg" (Header). */
   size?: "md" | "lg";
+  withTagline?: boolean;
+  /** Hält die SVG-Verlaufs-IDs eindeutig, wenn das Logo mehrfach auf einer Seite steht. */
+  idSuffix?: string;
 }) {
-  const autoColor = variant === "light" ? "text-white" : "text-navy-900";
-  const suffixColor = variant === "light" ? "text-brand-400" : "text-brand-600";
-  const markSize = size === "lg" ? 48 : 40;
-  const textSizeClass = size === "lg" ? "text-3xl" : "text-2xl";
+  const isLight = variant === "light";
+  const darkTextColor = isLight ? "#FFFFFF" : NAVY;
+  const taglineColor = isLight ? "#C7D6EC" : "#14294F";
+
+  const markSize = size === "lg" ? 50 : 44;
+  const wordmarkClass = size === "lg" ? "text-[1.75rem]" : "text-[1.4rem]";
+  const taglineClass = size === "lg" ? "text-[0.72rem]" : "text-[0.62rem]";
 
   return (
     <Link
       href="/"
-      className={`inline-flex items-center gap-2.5 ${className}`}
-      aria-label="Autoklick24 Startseite"
+      className={`inline-flex items-center gap-3 ${className}`}
+      aria-label="Autoklick24 – Auto verkaufen. Klick. Fertig."
     >
-      <AutoklickMark size={markSize} />
-      <span className={`inline-flex items-center ${textSizeClass} font-bold tracking-tight`}>
-        <span className={autoColor}>Auto</span>
-        <span className="text-cyan-400">klick</span>
-        <span className={suffixColor}>24</span>
+      <AutoklickMark size={markSize} idSuffix={idSuffix} />
+
+      <span className="font-display inline-flex flex-col justify-center leading-none">
+        <span className={`${wordmarkClass} font-extrabold tracking-[-0.02em]`}>
+          <span style={{ color: darkTextColor }}>Auto</span>
+          <span className="bg-gradient-to-r from-[#3896F5] to-[#1862E6] bg-clip-text text-transparent">
+            klick
+          </span>
+          <span style={{ color: darkTextColor }}>24</span>
+        </span>
+
+        {withTagline && (
+          <span className={`${taglineClass} mt-1.5 font-medium`} style={{ color: taglineColor }}>
+            Auto verkaufen. <span className="font-bold text-[#1E70EA]">Klick.</span> Fertig.
+          </span>
+        )}
       </span>
     </Link>
   );

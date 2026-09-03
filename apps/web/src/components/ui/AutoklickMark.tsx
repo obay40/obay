@@ -1,55 +1,77 @@
 /**
- * Bildmarke (App-Icon-Kachel): dunkles, abgerundetes Quadrat mit
- * Auto-Frontansicht + Klick-Cursor. Als Code nachgebaut nach der vom
- * Auftraggeber bereitgestellten Logo-Vorlage (Bildübertragung in dieser
- * Sitzung technisch nicht möglich, siehe public/brand/README.md) -
- * originalgetreu in Form/Farbwelt, aber kein Pixel-Export der Originaldatei.
- * Sobald die Originaldatei vorliegt, kann sie unter public/brand/ abgelegt
- * und hier per <Image> eingebunden werden, ohne dass Aufrufer dieser
- * Komponente sich ändern müssen.
+ * Bildmarke (App-Icon-Kachel) des Autoklick24-Logos: dunkelblaues,
+ * abgerundetes Quadrat mit weißer Auto-Frontansicht, blauem Klick-Cursor und
+ * grünen Klick-Funken. Als SVG nachgebaut nach der Logo-Vorlage des
+ * Auftraggebers (die Bilddatei selbst ließ sich in dieser Umgebung nicht
+ * übertragen, siehe public/brand/README.md) - Formen und Farbwerte sind an
+ * der Vorlage abgenommen, nicht an der übrigen UI-Palette.
+ *
+ * Identische Geometrie liegt zusätzlich als statische Datei in
+ * apps/web/src/app/icon.svg (Favicon) - beide zusammen ändern.
+ *
+ * `idSuffix` hält die Verlaufs-IDs eindeutig, wenn die Marke mehrfach auf
+ * derselben Seite steht (Header + Footer).
  */
-export function AutoklickMark({ size = 40, className = "" }: { size?: number; className?: string }) {
+const NAVY = "#12264A";
+
+export function AutoklickMark({
+  size = 48,
+  idSuffix = "",
+  className = "",
+}: {
+  size?: number;
+  idSuffix?: string;
+  className?: string;
+}) {
+  const cursorGradientId = `ak-cursor${idSuffix}`;
+
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 200 200"
       className={className}
       role="img"
       aria-label="Autoklick24 Symbol"
     >
       <defs>
-        <linearGradient id="ak-cursor" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#5CD3E8" />
-          <stop offset="100%" stopColor="#1E56B8" />
+        <linearGradient id={cursorGradientId} x1="15%" y1="0%" x2="85%" y2="100%">
+          <stop offset="0%" stopColor="#63B3F9" />
+          <stop offset="100%" stopColor="#1A6ADF" />
         </linearGradient>
       </defs>
 
-      <rect width="100" height="100" rx="22" fill="#0A1626" />
+      <rect width="200" height="200" rx="52" fill={NAVY} />
 
-      {/* Auto, Frontansicht */}
-      <g fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 44 Q22 30 34 30 H66 Q78 30 78 44 V60 Q78 66 72 66 H28 Q22 66 22 60 Z" />
-        <path d="M30 38 H70" strokeWidth="2.5" opacity="0.7" />
-        <rect x="26" y="45" width="14" height="9" rx="3" />
-        <rect x="60" y="45" width="14" height="9" rx="3" />
-        <path d="M44 52 H56" strokeWidth="3" />
-        <path d="M43 58 H57" strokeWidth="3" />
-      </g>
-
-      {/* Klick-Funken */}
-      <g stroke="#2FAE7A" strokeWidth="3" strokeLinecap="round">
-        <path d="M16 62 L23 60" />
-        <path d="M18 70 L25 66.5" />
-        <path d="M23 77 L28 72" />
-      </g>
-
-      {/* Cursor */}
+      {/* Auto-Frontansicht: geschlossene weiße Silhouette ... */}
       <path
-        d="M33 55 L33 82 L40.5 75.5 L45.5 86 L51.5 83 L46.5 72.5 L56 72.5 Z"
-        fill="url(#ak-cursor)"
-        stroke="#0A1626"
-        strokeWidth="1.5"
+        d="M40 116 L40 90 Q40 79 50 75 L60 71 Q64 55 76 48 Q87 42 100 42 Q113 42 124 48 Q136 55 140 71 L150 75 Q160 79 160 90 L160 116 Q160 126 150 126 L50 126 Q40 126 40 116 Z"
+        fill="#FFFFFF"
+      />
+      {/* ... mit Windschutzscheibe als Navy-Aussparung ... */}
+      <path d="M71 76 Q76 56 100 56 Q124 56 129 76 Z" fill={NAVY} />
+      {/* ... Außenspiegeln ... */}
+      <path d="M40 86 L25 90 Q21 91 22 95 L23 98 Q24 102 28 101 L40 97 Z" fill="#FFFFFF" />
+      <path d="M160 86 L175 90 Q179 91 178 95 L177 98 Q176 102 172 101 L160 97 Z" fill="#FFFFFF" />
+      {/* ... Scheinwerfern ... */}
+      <path d="M50 88 L86 94 L86 101 L50 95 Z" fill={NAVY} />
+      <path d="M150 88 L114 94 L114 101 L150 95 Z" fill={NAVY} />
+      {/* ... und Kühlergrill. */}
+      <rect x="76" y="110" width="48" height="9" rx="4.5" fill={NAVY} />
+
+      {/* Klick-Funken links neben dem Cursor */}
+      <g stroke="#5CC22B" strokeWidth="7" strokeLinecap="round">
+        <path d="M36 133 L50 136" />
+        <path d="M33 150 L48 149" />
+        <path d="M40 166 L52 160" />
+      </g>
+
+      {/* Cursor, mit der Spitze auf der Fahrzeugfront */}
+      <path
+        d="M84 106 L84 152 L95 143 L103 161 L114 156 L106 139 L121 139 Z"
+        fill={`url(#${cursorGradientId})`}
+        stroke="#FFFFFF"
+        strokeWidth="7"
         strokeLinejoin="round"
       />
     </svg>
