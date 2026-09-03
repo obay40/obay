@@ -191,9 +191,18 @@
   .number-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .number-field .field-unit{position:absolute;right:12px;bottom:11px;font-size:.9rem;font-weight:600;color:var(--navy-500);pointer-events:none;}
   .filter-field select:disabled{cursor:not-allowed;background:var(--bg-subtle);color:var(--ink-soft);}
-  /* Ort/PLZ + Umkreis-Regler teilen sich eine Grid-Zelle (Regler "direkt darunter"). */
-  .filter-field-stack{display:flex;flex-direction:column;gap:12px;}
+  /* Ort/PLZ links + Umkreis-Regler rechts daneben, eigene Zeile unter dem Filterraster. */
+  .location-radius-row{margin-top:12px;display:flex;flex-direction:column;gap:12px;}
+  @media (min-width:640px){
+    .location-radius-row{flex-direction:row;align-items:flex-start;}
+    .location-radius-row .filter-field{flex:0 0 45%;}
+    .location-radius-row .radius-field{flex:1 1 auto;}
+  }
   .radius-field{border:1px solid var(--border-strong);border-radius:10px;padding:8px 12px 12px;}
+  /* Dezentes Einblenden, sobald ein gueltiger Ort/PLZ erkannt wird. */
+  .radius-field{animation:ak-fade-in .18s ease-out;}
+  @keyframes ak-fade-in{from{opacity:0;transform:translateY(-2px);}to{opacity:1;transform:translateY(0);}}
+  @media (prefers-reduced-motion:reduce){.radius-field{animation:none;}}
   .radius-field-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
   .radius-field-head label{margin-bottom:0;}
   .radius-value{font-size:.88rem;font-weight:700;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;}
@@ -678,11 +687,26 @@
     return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
       + '<input id="' + id + '" type="text" placeholder="' + placeholder + '"></div>';
   }
+  function locationField(id, label, placeholder){
+    return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
+      + '<input id="' + id + '" type="text" placeholder="' + placeholder + '" oninput="onLocationInput(this)"></div>';
+  }
   // Umkreis-Regler: natives <input type="range">, 0-200 km in 5-km-Schritten,
   // Standard 50 km. 0 km ist ein eigener Wert ("nur exakter Ort"), keine
   // Sonderbedeutung "kein Filter" - siehe radiusValueLabel().
+  // Erkennt eine gueltige deutsche PLZ (5 Ziffern), allein oder mit
+  // Ortsnamen ("50667 Köln"). \b sorgt dafuer, dass eine laengere
+  // Ziffernfolge (z. B. eine Telefonnummer) nicht als Teiltreffer
+  // durchgeht. Fuer freie Ortsnamen ohne PLZ gibt es bewusst (noch) keine
+  // Erkennung - siehe apps/web packages/types isValidGermanLocationInput()
+  // fuer die vollstaendige Begruendung (kein Fake-Geocoding ohne echten
+  // Provider). Dieselbe Regel wie in der Next.js-App, damit beide
+  // Oberflaechen denselben Begriff von "gueltiger Standort" haben.
+  function isValidGermanLocationInput(value){
+    return /\b\d{5}\b/.test((value || '').trim());
+  }
   function radiusField(id){
-    return '<div class="filter-field radius-field">'
+    return '<div class="filter-field radius-field" id="' + id + '_wrap" hidden>'
       + '<div class="radius-field-head"><label for="' + id + '">Umkreis</label>'
       + '<span class="radius-value" id="' + id + '_value">' + radiusValueLabel(RADIUS_DEFAULT) + '</span></div>'
       + '<input id="' + id + '" class="ak-range" type="range" min="' + RADIUS_MIN + '" max="' + RADIUS_MAX + '" step="' + RADIUS_STEP + '" value="' + RADIUS_DEFAULT + '" '
@@ -698,6 +722,20 @@
     input.style.setProperty('--ak-range-progress', (km / RADIUS_MAX * 100) + '%');
     input.setAttribute('aria-valuetext', km === 0 ? '0 Kilometer, nur exakter Ort' : km + ' Kilometer');
     document.getElementById(input.id + '_value').textContent = radiusValueLabel(km);
+  };
+  window.onLocationInput = function(input){
+    var wrap = document.getElementById(RADIUS_ID + '_wrap');
+    if (isValidGermanLocationInput(input.value)) {
+      wrap.hidden = false;
+    } else {
+      wrap.hidden = true;
+      // Ungueltig/geloescht: Umkreis intern auf Standard zuruecksetzen -
+      // kein alter Radius bleibt unbemerkt aktiv, wenn spaeter erneut ein
+      // gueltiger Ort eingegeben wird.
+      var radiusEl = document.getElementById(RADIUS_ID);
+      radiusEl.value = RADIUS_DEFAULT;
+      onRadiusInput(radiusEl);
+    }
   };
   function checkboxField(name, label){
     var id = 'chk_' + name.replace(/[^a-zA-Z0-9]/g, '');
@@ -732,8 +770,8 @@
       +        selectField('fKm','Kilometerstand bis', opts('Egal', KMSTAENDE, function(v){ return v.toLocaleString('de-DE') + ' km'; }))
       +        selectField('fKraftstoff','Kraftstoff', opts('Alle', KRAFTSTOFFE))
       +        selectField('fGetriebe','Getriebe', opts('Alle', GETRIEBE))
-      +        '<div class="filter-field-stack">' + textField('fOrt','Standort','PLZ oder Ort') + radiusField(RADIUS_ID) + '</div>'
       + '    </div>'
+      + '    <div class="location-radius-row">' + locationField('fOrt','Standort','PLZ oder Ort') + radiusField(RADIUS_ID) + '</div>'
       + '    <button type="button" class="filter-toggle" id="advToggle" aria-expanded="false" aria-controls="advancedFilters" onclick="toggleAdvancedFilters()">'
       +        chevron + ' Erweiterte Filter'
       + '    </button>'
@@ -820,9 +858,12 @@
       if (el) el.value = '';
     });
     // Umkreis geht bewusst nicht auf leer, sondern auf seinen Standardwert
-    // zurueck (siehe Aufgabenstellung Umkreis-Regler, Reset).
+    // zurueck (siehe Aufgabenstellung Umkreis-Regler, Reset); der Regler
+    // wird zusammen mit dem Ort-Feld wieder ausgeblendet.
     var radiusEl = document.getElementById(RADIUS_ID);
     if (radiusEl) { radiusEl.value = RADIUS_DEFAULT; onRadiusInput(radiusEl); }
+    var radiusWrap = document.getElementById(RADIUS_ID + '_wrap');
+    if (radiusWrap) radiusWrap.hidden = true;
     onMarkeChange(); // sperrt Modell wieder und setzt den Hinweistext zurück
     document.querySelectorAll('input[name="ausstattung"]').forEach(function(cb){ cb.checked = false; });
   };
@@ -838,11 +879,11 @@
     if (val('fPreis')) parts.push(FIELD_LABELS.fPreis + ': ' + Number(val('fPreis')).toLocaleString('de-DE') + ' €');
     if (val('fPS')) parts.push(FIELD_LABELS.fPS + ': ' + val('fPS') + ' PS');
     if (val('fPSBis')) parts.push(FIELD_LABELS.fPSBis + ': ' + val('fPSBis') + ' PS');
-    // Umkreis ist ohne Ort wirkungslos, deshalb nur zusammen mit fOrt
-    // aufgenommen (siehe RadiusSlider/radiusField, Sektion "0 km").
+    // Umkreis ist ohne einen tatsaechlich GUELTIGEN Ort wirkungslos, deshalb
+    // nur dann aufgenommen (nicht schon bei jeder Texteingabe in fOrt).
     // TODO: geocoding / radius backend integration - siehe VehicleSearchFilters.radiusKm
     // in packages/types (apps/web) fuer die vollstaendige Begruendung.
-    if (val('fOrt')) {
+    if (isValidGermanLocationInput(val('fOrt'))) {
       var radiusVal = Number(document.getElementById(RADIUS_ID).value);
       parts.push('Umkreis: ' + radiusValueLabel(radiusVal));
     }
