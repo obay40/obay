@@ -69,17 +69,19 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  .header-row{height:88px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .header-row{height:72px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
   .logo,.footer-logo{display:flex;align-items:center;gap:12px;}
-  .logo-mark{width:50px;height:50px;flex-shrink:0;}
+  .logo-mark{width:40px;height:40px;flex-shrink:0;}
   .logo-text{display:flex;flex-direction:column;justify-content:center;line-height:1;}
-  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.75rem;letter-spacing:-.02em;}
+  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;white-space:nowrap;}
   .logo-word b{font-weight:800;color:#0B1F3F;}
   .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .logo-tagline{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:500;font-size:.72rem;color:#14294F;margin-top:6px;}
-  .logo-tagline b{font-weight:700;color:#1E70EA;}
-  nav.primary{display:none;align-items:center;gap:22px;}
-  nav.primary a{font-size:.9rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
+  @media (min-width:640px){
+    .logo-mark{width:48px;height:48px;}
+    .logo-word{font-size:1.55rem;}
+  }
+  nav.primary{display:none;align-items:center;gap:16px;}
+  nav.primary a{font-size:.875rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
   nav.primary a:hover{color:var(--brand-600);}
   nav.primary a.active{color:var(--brand-600);border-color:var(--brand-500);}
   .header-actions{display:none;align-items:center;gap:14px;white-space:nowrap;}
@@ -111,7 +113,7 @@
   #mobile-nav a:hover{background:var(--bg-subtle);}
   #mobile-nav .mn-actions{margin-top:8px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
 
-  @media (min-width:1280px){
+  @media (min-width:1200px){
     nav.primary{display:flex;}
     .header-actions{display:flex;}
     .burger{display:none;}
@@ -280,7 +282,7 @@
   .footer-grid a:hover{color:var(--cyan-300);}
   .footer-bottom{margin-top:44px;padding:22px 0 26px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
   .footer-logo .logo-word b{color:#fff;}
-  .footer-logo .logo-tagline{color:#C7D6EC;}
+  .footer-logo
   .footer-bottom p{font-size:.76rem;color:#6F80998a; color:#7C8CA5;max-width:520px;}
 
   [hidden]{display:none!important;}
@@ -300,7 +302,12 @@
 
 <header class="site">
   <div class="wrap header-row">
-    <a href="#/" class="logo"><svg class="logo-mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="akc-footer" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#63B3F9"/><stop offset="100%" stop-color="#1A6ADF"/></linearGradient></defs><rect width="200" height="200" rx="52" fill="#12264A"/><path d="M32 94 L21 96 Q16 97 16 102 Q16 106 21 106 L32 104 Z" fill="#FFFFFF"/><path d="M168 94 L179 96 Q184 97 184 102 Q184 106 179 106 L168 104 Z" fill="#FFFFFF"/><path d="M55 92 L61 66 Q63 57 74 56 L126 56 Q137 57 139 66 L145 92 Z" fill="#FFFFFF"/><path d="M66 87 L71 70 Q72 64 79 63 L121 63 Q128 64 129 70 L134 87 Z" fill="#12264A"/><path d="M28 122 L28 99 Q28 90 38 88 L55 86 L145 86 L162 88 Q172 90 172 99 L172 122 Q172 133 161 133 L39 133 Q28 133 28 122 Z" fill="#FFFFFF"/><rect x="37" y="98" width="34" height="10" rx="5" fill="#12264A"/><rect x="129" y="98" width="34" height="10" rx="5" fill="#12264A"/><rect x="68" y="114" width="64" height="10" rx="5" fill="#12264A"/><g stroke="#5CC22B" stroke-width="7" stroke-linecap="round"><path d="M80 148 L67 144"/><path d="M76 161 L62 161"/><path d="M81 173 L70 179"/></g><path d="M100 130 L100 167 L109 160 L115 174 L124 170 L118 156 L130 156 Z" fill="url(#akc-footer)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round"/></svg><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span><span class="logo-tagline">Auto verkaufen. <b>Klick.</b> Fertig.</span></span></a>
+    <!-- TODO: offizielle Logo-Mark-Datei aus Original bereitstellen.
+     Das unten eingebettete SVG ist ein PLATZHALTER, nicht das Originalsymbol.
+     Ersetzen durch <img src="brand/autoklick24-symbol.png" class="logo-mark" alt="">
+     WICHTIG: relativer Pfad ohne fuehrenden Slash - die Seite laeuft unter
+     /obay/ auf GitHub Pages, "/brand/..." wuerde dort 404 liefern. -->
+    <a href="#/" class="logo"><svg class="logo-mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="akc" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#63B3F9"/><stop offset="100%" stop-color="#1A6ADF"/></linearGradient></defs><rect width="200" height="200" rx="52" fill="#12264A"/><path d="M32 94 L21 96 Q16 97 16 102 Q16 106 21 106 L32 104 Z" fill="#FFFFFF"/><path d="M168 94 L179 96 Q184 97 184 102 Q184 106 179 106 L168 104 Z" fill="#FFFFFF"/><path d="M55 92 L61 66 Q63 57 74 56 L126 56 Q137 57 139 66 L145 92 Z" fill="#FFFFFF"/><path d="M66 87 L71 70 Q72 64 79 63 L121 63 Q128 64 129 70 L134 87 Z" fill="#12264A"/><path d="M28 122 L28 99 Q28 90 38 88 L55 86 L145 86 L162 88 Q172 90 172 99 L172 122 Q172 133 161 133 L39 133 Q28 133 28 122 Z" fill="#FFFFFF"/><rect x="37" y="98" width="34" height="10" rx="5" fill="#12264A"/><rect x="129" y="98" width="34" height="10" rx="5" fill="#12264A"/><rect x="68" y="114" width="64" height="10" rx="5" fill="#12264A"/><g stroke="#5CC22B" stroke-width="7" stroke-linecap="round"><path d="M80 148 L67 144"/><path d="M76 161 L62 161"/><path d="M81 173 L70 179"/></g><path d="M100 130 L100 167 L109 160 L115 174 L124 170 L118 156 L130 156 Z" fill="url(#akc)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round"/></svg><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span></span></a>
 
     <nav class="primary" id="primary-nav">
       <a href="#/autos" data-route="/autos">Autos kaufen</a>
@@ -385,7 +392,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-logo"><svg class="logo-mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="akc" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#63B3F9"/><stop offset="100%" stop-color="#1A6ADF"/></linearGradient></defs><rect width="200" height="200" rx="52" fill="#12264A"/><path d="M40 116 L40 90 Q40 79 50 75 L60 71 Q64 55 76 48 Q87 42 100 42 Q113 42 124 48 Q136 55 140 71 L150 75 Q160 79 160 90 L160 116 Q160 126 150 126 L50 126 Q40 126 40 116 Z" fill="#FFFFFF"/><path d="M71 76 Q76 56 100 56 Q124 56 129 76 Z" fill="#12264A"/><path d="M40 86 L25 90 Q21 91 22 95 L23 98 Q24 102 28 101 L40 97 Z" fill="#FFFFFF"/><path d="M160 86 L175 90 Q179 91 178 95 L177 98 Q176 102 172 101 L160 97 Z" fill="#FFFFFF"/><path d="M50 88 L86 94 L86 101 L50 95 Z" fill="#12264A"/><path d="M150 88 L114 94 L114 101 L150 95 Z" fill="#12264A"/><rect x="76" y="110" width="48" height="9" rx="4.5" fill="#12264A"/><g stroke="#5CC22B" stroke-width="7" stroke-linecap="round"><path d="M36 133 L50 136"/><path d="M33 150 L48 149"/><path d="M40 166 L52 160"/></g><path d="M84 106 L84 152 L95 143 L103 161 L114 156 L106 139 L121 139 Z" fill="url(#akc)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round"/></svg><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span><span class="logo-tagline">Auto verkaufen. <b>Klick.</b> Fertig.</span></span></span>
+      <span class="footer-logo"><svg class="logo-mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="akc-footer" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#63B3F9"/><stop offset="100%" stop-color="#1A6ADF"/></linearGradient></defs><rect width="200" height="200" rx="52" fill="#12264A"/><path d="M32 94 L21 96 Q16 97 16 102 Q16 106 21 106 L32 104 Z" fill="#FFFFFF"/><path d="M168 94 L179 96 Q184 97 184 102 Q184 106 179 106 L168 104 Z" fill="#FFFFFF"/><path d="M55 92 L61 66 Q63 57 74 56 L126 56 Q137 57 139 66 L145 92 Z" fill="#FFFFFF"/><path d="M66 87 L71 70 Q72 64 79 63 L121 63 Q128 64 129 70 L134 87 Z" fill="#12264A"/><path d="M28 122 L28 99 Q28 90 38 88 L55 86 L145 86 L162 88 Q172 90 172 99 L172 122 Q172 133 161 133 L39 133 Q28 133 28 122 Z" fill="#FFFFFF"/><rect x="37" y="98" width="34" height="10" rx="5" fill="#12264A"/><rect x="129" y="98" width="34" height="10" rx="5" fill="#12264A"/><rect x="68" y="114" width="64" height="10" rx="5" fill="#12264A"/><g stroke="#5CC22B" stroke-width="7" stroke-linecap="round"><path d="M80 148 L67 144"/><path d="M76 161 L62 161"/><path d="M81 173 L70 179"/></g><path d="M100 130 L100 167 L109 160 L115 174 L124 170 L118 156 L130 156 Z" fill="url(#akc-footer)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round"/></svg><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span></span></span>
       <p>© 2026 Autoklick24 · Anfragen werden aktuell manuell per WhatsApp/E-Mail bearbeitet, der automatisierte Marktplatz folgt schrittweise · Rechtstexte sind Platzhalter und juristisch zu prüfen.</p>
     </div>
   </div>
