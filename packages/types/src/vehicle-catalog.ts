@@ -60,6 +60,7 @@ export interface VehicleSearchFilters {
   modelSlug?: string;
   yearFrom?: number;
   mileageTo?: number;
+  priceFrom?: number;
   priceTo?: number;
   /**
    * Mindestleistung in PS. PS ist bewusst auch die interne Einheit:
@@ -68,6 +69,8 @@ export interface VehicleSearchFilters {
    * "powerFrom".
    */
   powerFromPs?: number;
+  /** Hoechstleistung in PS, gleiche Einheit wie powerFromPs. */
+  powerToPs?: number;
   location?: string;
   radiusKm?: number;
   fuelTypes?: FuelType[];

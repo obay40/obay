@@ -101,13 +101,22 @@ export function VehicleSearchCard() {
           */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <NumberField
-              id="vehicle-search-price"
+              id="vehicle-search-price-from"
+              label="Preis von"
+              value={search.filters.priceFrom ?? ""}
+              onChange={search.setPriceFrom}
+              unit="€"
+              max={100_000_000}
+              className="sm:order-2"
+            />
+            <NumberField
+              id="vehicle-search-price-to"
               label="Preis bis"
               value={search.filters.priceTo ?? ""}
               onChange={search.setPriceTo}
               unit="€"
               max={100_000_000}
-              className="sm:order-2"
+              className="sm:order-3"
             />
             <SelectField
               id="vehicle-search-mileage"
@@ -121,8 +130,16 @@ export function VehicleSearchCard() {
             <LocationInput
               value={search.filters.location ?? ""}
               onChange={search.setLocation}
-              className="sm:order-3"
+              className="sm:order-4"
             />
+          </div>
+
+          {/*
+            Letzte Filterzeile: Umkreis, Leistung ab/bis und die
+            Kraftstoff-Chips teilen sich die vier Spalten. So bleibt keine
+            Spalte leer, seit Preis und Leistung je zwei Felder belegen.
+          */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <SelectField
               id="vehicle-search-radius"
               label="Umkreis"
@@ -130,28 +147,27 @@ export function VehicleSearchCard() {
               onChange={search.setRadiusKm}
               options={RADIUS_OPTIONS}
               placeholder="Bundesweit"
-              className="sm:order-4"
             />
-          </div>
-
-          {/*
-            Leistung teilt sich die Zeile mit den Kraftstoff-Chips: allein in
-            einer 4-Spalten-Zeile stünde das Feld sonst mit drei leeren
-            Spalten daneben. Die bestehenden Filterzeilen bleiben unberührt.
-          */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <NumberField
-              id="vehicle-search-power"
+              id="vehicle-search-power-from"
               label="Leistung ab"
               value={search.filters.powerFromPs ?? ""}
               onChange={search.setPowerFromPs}
               unit="PS"
               max={10_000}
             />
+            <NumberField
+              id="vehicle-search-power-to"
+              label="Leistung bis"
+              value={search.filters.powerToPs ?? ""}
+              onChange={search.setPowerToPs}
+              unit="PS"
+              max={10_000}
+            />
             <FuelTypeChips
               value={search.filters.fuelTypes ?? []}
               onChange={search.setFuelTypes}
-              className="items-center sm:col-span-1 lg:col-span-3"
+              className="items-center sm:col-span-2 lg:col-span-1"
             />
           </div>
 
