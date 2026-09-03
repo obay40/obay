@@ -20,8 +20,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/*
           Schriften per <link> statt next/font: next/font lädt die Dateien zur
           BUILD-Zeit herunter, was den Build ohne Netzzugang scheitern lässt.
-          Montserrat ist die Schrift der Wortmarke (siehe Logo.tsx), Inter die
-          Fließtextschrift (--font-sans in globals.css).
+          Montserrat ist die Schrift der Wortmarke (siehe Autoklick24Brand.tsx),
+          Inter die Fließtextschrift (--font-sans in globals.css).
 
           no-page-custom-font zielt auf den Pages Router ("nur eine Seite
           betroffen"). Hier steht der Link im Root-Layout des App Routers und

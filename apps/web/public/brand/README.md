@@ -1,56 +1,81 @@
 # Brand Assets
 
-Die vom Auftraggeber bereitgestellte Logo-Vorlage konnte in der jeweiligen
-Sitzung nicht als Datei übertragen werden (Bild-Uploads kamen technisch
-nicht im Dateisystem an). Deshalb ist die komplette Logo-Sperrung aktuell als
-Code nachgebaut.
+## ⚠️ TODO: offizielle Logo-Mark-Datei aus Original bereitstellen
 
-## Bestandteile der Sperrung
+**Das offizielle Autoklick24-Symbol liegt diesem Repository nicht bei.**
 
-1. **Bildmarke** – dunkelblaue, abgerundete Kachel (`#12264A`) mit weißer
-   Auto-Frontansicht (Windschutzscheibe als Navy-Aussparung, Außenspiegel,
-   schräge Scheinwerfer, Kühlergrill), blauem Klick-Cursor mit weißer Kontur
-   (Verlauf `#63B3F9` → `#1A6ADF`) und drei grünen Klick-Funken (`#5CC22B`).
-2. **Wortmarke** – „Auto" (Navy `#0B1F3F`) + „klick" (Blauverlauf `#3896F5` →
-   `#1862E6`, per `bg-clip-text`) + „24" (Navy). Wichtig: die „24" ist **navy**,
-   nicht blau.
-3. **Tagline** – „Auto verkaufen. **Klick.** Fertig." – „Klick." fett in
-   `#1E70EA`, der Rest in `#14294F` (bzw. `#C7D6EC` auf dunklem Grund).
+In dieser Arbeitsumgebung ist nie eine Bilddatei des Logos angekommen.
+Nachweislich eingegangen sind ausschließlich zwei Uploads:
 
-## Schrift
+| Datei | Inhalt |
+|---|---|
+| `…-mobile_de_automarken_modelle_hierarchie_car.xlsx` | Fahrzeugkatalog |
+| `…-autocorp244.zip` | Vorgängerprojekt, enthält nur `icon-192/512.png` — ein Sechseck-„A", **nicht** dieses Logo |
 
-Die Wortmarke nutzt **Montserrat ExtraBold (800)** – die geometrische Grotesk
-aus der Vorlage. Eingebunden ist sie als Google-Fonts-`<link>` in
-`apps/web/src/app/layout.tsx` (bewusst **nicht** über `next/font/google`: das
-lädt die Schriftdateien zur Build-Zeit herunter und bricht damit Builds ohne
-Netzzugang). Verfügbar ist sie über:
+Solange keine Originaldatei vorliegt, rendert `Autoklick24Brand` die
+**Platzhalter**-Bildmarke aus `AutoklickMark.tsx`. Diese ist eine Eigenzeichnung,
+ausdrücklich **nicht** das Original, und wird bewusst nicht weiter an das
+Original angenähert — jede weitere Nachzeichnung wäre eine improvisierte
+Nachbildung.
 
-- CSS-Variable `--font-display` in `apps/web/src/app/globals.css`
-- Tailwind-Utility `font-display` (siehe `apps/web/tailwind.config.ts`)
+### Original einsetzen — drei Schritte
 
-Wird die Schrift nicht geladen, greift der Fallback `Inter` →
-`ui-sans-serif`/`system-ui`.
+1. **Datei ablegen** in diesem Ordner, z. B. `autoklick24-symbol.png`
+   Nur das Symbol: ohne Schriftzug, ohne Claim, ohne weißen Hintergrund.
+   PNG mit Transparenz (≥ 512 px) oder SVG.
+   Optional zusätzlich das vollständige Original als
+   `autoklick24-logo-original.png` zur Ablage.
+2. **Eine Zeile ändern** in `apps/web/src/components/ui/Autoklick24Brand.tsx`:
+   ```ts
+   const OFFICIAL_SYMBOL_SRC: string | null = "/brand/autoklick24-symbol.png";
+   ```
+   Header, Footer und alle weiteren Verwendungen ziehen automatisch nach.
+3. **Platzhalter entfernen**: `AutoklickMark.tsx` und `app/icon.svg` löschen
+   bzw. durch das Original ersetzen. Auch die Demo-Seite auf `gh-pages`
+   (`index.html`, zwei eingebettete SVGs) ersetzen — dort steht ein
+   entsprechender TODO-Kommentar.
+
+> **GitHub Pages:** Die Demo läuft unter `https://obay40.github.io/obay/`.
+> Dort muss der Bildpfad **relativ** sein (`brand/autoklick24-symbol.png`),
+> ein führender Slash (`/brand/…`) liefert dort 404. In der Next.js-App ist
+> `/brand/…` dagegen korrekt.
+
+## Wortmarke (abgenommen, unverändert lassen)
+
+| Eigenschaft | Wert |
+|---|---|
+| Schrift | **Montserrat**, Fallback `Inter` → `ui-sans-serif`/`system-ui` |
+| Font Weight | **800** (ExtraBold) |
+| Letter Spacing | `-0.02em` |
+| Größe Desktop | `1.55rem` (≈ 24,8 px) |
+| Größe Mobile | `1.3rem` (≈ 20,8 px) |
+| „Auto" und „24" | Navy `#0B1F3F` (hell: `#FFFFFF`) |
+| „klick" | Blauverlauf `#3896F5` → `#1862E6` via `bg-clip-text` |
+| Schreibweise | immer `Autoklick24` — nie `Autoklick 24`, `AutoKlick24` |
+
+Montserrat wird als Google-Fonts-`<link>` in `apps/web/src/app/layout.tsx`
+geladen — bewusst **nicht** über `next/font/google`, das lädt die Dateien zur
+Build-Zeit herunter und bricht Builds ohne Netzzugang. Verfügbar als
+CSS-Variable `--font-display` und als Tailwind-Utility `font-display`.
+
+## Symbolgrößen
+
+| Kontext | Größe |
+|---|---|
+| Desktop (ab 640 px) | 48 px |
+| Mobile | 40 px |
+| `size="sm"` | 36 px |
+| `size="lg"` | 44 px mobil / 54 px Desktop |
+
+Das Symbol behält immer seine Originalfarben. **Keine** CSS-Filter
+(`brightness`, `hue-rotate`, `invert`, `grayscale`), keine Theme-Einfärbung —
+`variant="light"` dreht ausschließlich den Schriftzug auf Weiß.
 
 ## Dateien
 
-- `apps/web/src/components/ui/AutoklickMark.tsx` – die Bildmarke als
-  Inline-SVG (`viewBox="0 0 200 200"`), `idSuffix` hält die Verlaufs-IDs
-  eindeutig, wenn das Logo mehrfach auf einer Seite steht
-- `apps/web/src/components/ui/Logo.tsx` – die volle Sperrung
-  (Bildmarke + Wortmarke + Tagline). Props: `variant="light"` für dunkle
-  Hintergründe (SiteFooter), `size="lg"` für den Header, `withTagline`
-- `apps/web/src/app/icon.svg` – **dieselbe Geometrie** als
-  Next.js-Favicon. Bei Änderungen an `AutoklickMark.tsx` immer mitziehen.
-
-Die statische Demo-Seite (`gh-pages`-Branch, `index.html`) enthält denselben
-Aufbau als reines HTML/CSS und muss bei Logo-Änderungen ebenfalls angepasst
-werden.
-
-## Original-Datei später einsetzen
-
-1. Datei hier ablegen als `autoklick24-logo.svg` (bevorzugt) oder `.png`
-2. `Logo.tsx` von `<AutoklickMark />` auf
-   `<Image src="/brand/autoklick24-logo.svg" .../>` umstellen (Wortmarke
-   bleibt ggf. Teil der Datei oder weiterhin als Text)
-3. `app/icon.svg` durch die Originaldatei ersetzen (oder `app/icon.png`
-   anlegen, Next.js erkennt beide automatisch)
+| Datei | Rolle |
+|---|---|
+| `components/ui/Autoklick24Brand.tsx` | **einzige** Markendarstellung (Header + Footer) |
+| `components/ui/AutoklickMark.tsx` | Platzhalter-Symbol, siehe oben |
+| `app/icon.svg` | Favicon, gleiche Geometrie wie der Platzhalter |
+| gh-pages `index.html` | Demo-Seite, zwei eingebettete Kopien |

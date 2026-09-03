@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
-import { Logo } from "@/components/ui/Logo";
+import { Autoklick24Brand } from "@/components/ui/Autoklick24Brand";
 
 interface FooterColumn {
   title: string;
@@ -73,7 +73,7 @@ export function SiteFooter() {
         </div>
 
         <div className="border-navy-800 mt-12 flex flex-col items-start justify-between gap-4 border-t pt-6 sm:flex-row sm:items-center">
-          <Logo variant="light" idSuffix="-footer" />
+          <Autoklick24Brand variant="light" size="md" idSuffix="-footer" />
           <p className="text-navy-400 text-xs">
             © {new Date().getFullYear()} Autoklick24. Alle Angaben ohne Gewähr. Rechtstexte sind
             Platzhalter und juristisch zu prüfen.

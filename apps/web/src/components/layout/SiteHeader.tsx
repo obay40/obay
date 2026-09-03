@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Logo } from "@/components/ui/Logo";
+import { Autoklick24Brand } from "@/components/ui/Autoklick24Brand";
 import { Container } from "@/components/ui/Container";
 import { primaryNavLinks } from "./nav-links";
 
@@ -11,10 +11,10 @@ export function SiteHeader() {
 
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
-      <Container className="flex h-20 items-center justify-between gap-4">
-        <Logo size="lg" />
+      <Container className="flex h-[72px] items-center justify-between gap-4">
+        <Autoklick24Brand size="md" />
 
-        <nav className="hidden items-center gap-5 xl:flex" aria-label="Hauptnavigation">
+        <nav className="hidden items-center gap-5 lg:flex" aria-label="Hauptnavigation">
           {primaryNavLinks.map((link) => (
             <Link
               key={link.href}
@@ -26,7 +26,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 xl:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <Link
             href="/favoriten"
             className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-sm font-medium transition-colors"
@@ -49,7 +49,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 xl:hidden"
+          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 lg:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
@@ -78,7 +78,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <nav
           id="mobile-nav"
-          className="border-navy-100 border-t bg-white xl:hidden"
+          className="border-navy-100 border-t bg-white lg:hidden"
           aria-label="Mobile Navigation"
         >
           <Container className="flex flex-col gap-1 py-3">

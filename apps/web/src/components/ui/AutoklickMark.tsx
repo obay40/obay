@@ -1,25 +1,27 @@
 /**
- * Bildmarke (App-Icon-Kachel) des Autoklick24-Logos: dunkelblaues,
- * abgerundetes Quadrat mit weißer Auto-Frontansicht, blauem Klick-Cursor und
- * grünen Klick-Funken. Als SVG nachgebaut nach der Logo-Vorlage des
- * Auftraggebers (die Bilddatei selbst ließ sich in dieser Umgebung nicht
- * übertragen, siehe public/brand/README.md) - Formen und Farbwerte sind an
- * der Vorlage abgenommen, nicht an der übrigen UI-Palette.
+ * ===================================================================
+ * PLATZHALTER - NICHT das offizielle Autoklick24-Symbol.
+ * TODO: offizielle Logo-Mark-Datei aus Original bereitstellen.
+ * ===================================================================
  *
- * Die Geometrie ist auf Lesbarkeit bis ~32px optimiert und dabei bewusst
- * gesetzt:
- * - Dach breit und flach (nicht hoch/schmal), sonst liest es sich als Turm.
- * - Spiegel klein und tief angesetzt, sonst bilden sie mit der Motorhaube
- *   eine durchgehende Flügellinie und das Ganze wirkt wie ein Flugzeug.
- * - Scheinwerfer waagerecht statt angeschrägt (angeschrägt = "böse Augen").
- * - Cursorspitze sitzt UNTER dem Kühlergrill: beide Formen bleiben intakt,
- *   der Cursor schneidet die Silhouette nicht auf.
+ * Diese Bildmarke ist eine Eigenzeichnung und wird nur so lange gerendert,
+ * wie in Autoklick24Brand.tsx OFFICIAL_SYMBOL_SRC === null ist. Sobald die
+ * offizielle Symboldatei vorliegt, wird diese Datei zusammen mit
+ * app/icon.svg geloescht bzw. durch das Original ersetzt.
  *
- * Identische Geometrie liegt zusätzlich als statische Datei in
- * apps/web/src/app/icon.svg (Favicon) und in der Demo-Seite auf dem
- * gh-pages-Branch - alle drei zusammen ändern.
+ * Sie wird bewusst NICHT weiter an das Original angenaehert: jede weitere
+ * Nachzeichnung waere eine improvisierte Nachbildung. Wer hier etwas aendern
+ * moechte, besorgt stattdessen die Originaldatei.
  *
- * `idSuffix` hält die Verlaufs-IDs eindeutig, wenn die Marke mehrfach auf
+ * Motiv: dunkelblaue abgerundete Kachel mit weisser Auto-Frontansicht,
+ * blauem Klick-Cursor und gruenen Klick-Funken. Die Geometrie ist auf
+ * Lesbarkeit bis ~32px ausgelegt (breites flaches Dach, tief angesetzte
+ * Spiegel, waagerechte Scheinwerfer, Cursorspitze unterhalb des Grills).
+ *
+ * Identische Geometrie liegt in app/icon.svg (Favicon) und in der Demo-Seite
+ * auf gh-pages - alle drei zusammen ersetzen.
+ *
+ * `idSuffix` haelt die Verlaufs-IDs eindeutig, wenn die Marke mehrfach auf
  * derselben Seite steht (Header + Footer).
  */
 const NAVY = "#12264A";
