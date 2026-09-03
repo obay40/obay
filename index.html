@@ -69,23 +69,26 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  .header-row{height:92px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-  .logo,.footer-logo{display:flex;align-items:center;gap:12px;}
-  .logo-mark{width:48px;height:48px;flex-shrink:0;}
+  .header-row{height:90px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .footer-logo{display:flex;align-items:center;gap:12px;}
+  .logo-mark{width:60px;height:60px;flex-shrink:0;}
   .logo-text{display:flex;flex-direction:column;justify-content:center;line-height:1;}
-  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.02em;white-space:nowrap;}
+  .logo-word{font-family:"Montserrat",var(--font-display),sans-serif;font-weight:800;font-size:1.625rem;letter-spacing:-.02em;white-space:nowrap;}
   .logo-word b{font-weight:800;color:#0B1F3F;}
   .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
   @media (min-width:640px){
-    .logo-mark{width:64px;height:64px;}
-    .logo-word{font-size:1.875rem;}
+    .header-row{height:131px;}
+    .logo{gap:16px;}
+    .logo-mark{width:92px;height:92px;}
+    .logo-word{font-size:2.625rem;}
   }
-  nav.primary{display:none;align-items:center;gap:16px;}
-  nav.primary a{font-size:1.0625rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
+  nav.primary{display:none;align-items:center;gap:24px;}
+  nav.primary a{font-size:1.125rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
   nav.primary a:hover{color:var(--brand-600);}
   nav.primary a.active{color:var(--brand-600);border-color:var(--brand-500);}
   .header-actions{display:none;align-items:center;gap:12px;white-space:nowrap;}
-  .header-actions a.text-link{font-size:1.0625rem;font-weight:500;color:var(--navy-700);}
+  .header-actions a.text-link{font-size:1.125rem;font-weight:500;color:var(--navy-700);}
   .header-actions a.text-link:hover{color:var(--brand-600);}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:6px;
@@ -336,6 +339,17 @@
   .footer-grid a:hover{color:var(--cyan-300);}
   .footer-bottom{margin-top:44px;padding:22px 0 26px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
   .footer-logo .logo-word b{color:#fff;}
+  /* Footer nutzt dieselben .logo-mark/.logo-word-Klassen wie der Header
+     (siehe markup weiter unten) - ohne diese Overrides waeurde jede
+     Header-Vergroesserung den Footer unbeabsichtigt mitziehen. Footer
+     bleibt bewusst bei der urspruenglichen kleineren Groesse (Aufgabe
+     betrifft nur den Header). */
+  .footer-logo .logo-mark{width:40px;height:40px;}
+  .footer-logo .logo-word{font-size:1.3rem;}
+  @media (min-width:640px){
+    .footer-logo .logo-mark{width:48px;height:48px;}
+    .footer-logo .logo-word{font-size:1.55rem;}
+  }
   .footer-logo
   .footer-bottom p{font-size:.76rem;color:#6F80998a; color:#7C8CA5;max-width:520px;}
 
