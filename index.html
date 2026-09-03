@@ -191,6 +191,20 @@
   .number-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .number-field .field-unit{position:absolute;right:12px;bottom:11px;font-size:.9rem;font-weight:600;color:var(--navy-500);pointer-events:none;}
   .filter-field select:disabled{cursor:not-allowed;background:var(--bg-subtle);color:var(--ink-soft);}
+  /* Leistungsfeld + PS/kW-Umschalter nebeneinander, bricht nur bei sehr wenig Platz um. */
+  /* Kein Zeilenumbruch: sonst stretcht CSS Grid die ganze Filterzeile auf
+     die Hoehe der umgebrochenen Box (siehe Aufgabenstellung Mobile: "darf
+     nicht in eine eigene Zeile rutschen, wenn genug Platz vorhanden ist") -
+     stattdessen schrumpft das Eingabefeld, der Umschalter bleibt daneben.
+  */
+  .power-field-row{display:flex;flex-wrap:nowrap;align-items:flex-end;gap:6px;}
+  .power-field-row .filter-field{flex:1 1 60px;min-width:56px;}
+  .power-field-row .number-field input{padding-right:0;}
+  .power-field-row .field-unit{display:none;}
+  .power-unit-toggle{flex:0 0 auto;display:inline-flex;align-items:stretch;height:40px;border:1px solid var(--border-strong);border-radius:10px;overflow:hidden;}
+  .power-unit-toggle button{padding:0 9px;font-size:.82rem;font-weight:700;font-family:var(--font-body);border:0;background:#fff;color:var(--ink-soft);cursor:pointer;}
+  .power-unit-toggle button+button{border-left:1px solid var(--border-strong);}
+  .power-unit-toggle button[aria-pressed="true"]{background:var(--brand-500);color:#fff;}
   /* Ort/PLZ links + Umkreis-Regler rechts daneben, eigene Zeile unter dem Filterraster. */
   .location-radius-row{margin-top:12px;display:flex;flex-direction:column;gap:12px;}
   @media (min-width:640px){
@@ -683,6 +697,54 @@
       + '<input id="' + id + '" type="number" inputmode="numeric" min="0" step="1" placeholder="Egal">'
       + '<span class="field-unit" aria-hidden="true">' + unit + '</span></div>';
   }
+  // Leistungsfeld mit PS/kW-Umschalter: intern wird IMMER in kW gespeichert
+  // (POWER_KW), unabhaengig von der Anzeigeeinheit - dieselbe Regel wie in
+  // der Next.js-App (packages/types convertPowerToKw/convertKwToPowerDisplay),
+  // hier als eigenstaendige Kopie fuer die statische Seite. 1 kW = 1,35962 PS,
+  // 1 PS = 0,735499 kW, ganzzahlig gerundet.
+  var POWER_PS_PER_KW = 1.35962;
+  var POWER_KW_PER_PS = 0.735499;
+  function convertPowerToKw(value, unit){
+    return unit === 'PS' ? Math.round(value * POWER_KW_PER_PS) : Math.round(value);
+  }
+  function convertKwToPowerDisplay(kw, unit){
+    return unit === 'PS' ? Math.round(kw * POWER_PS_PER_KW) : Math.round(kw);
+  }
+  var POWER_UNIT = 'PS';
+  var POWER_KW = {};
+  var POWER_IDS = ['fPS', 'fPSBis'];
+  function powerField(id, label){
+    return '<div class="filter-field number-field"><label for="' + id + '">' + label + '</label>'
+      + '<input id="' + id + '" type="number" inputmode="numeric" min="0" step="1" placeholder="Egal" oninput="onPowerInput(this)">'
+      + '<span class="field-unit" id="' + id + '_unit" aria-hidden="true">PS</span></div>';
+  }
+  function powerUnitToggle(){
+    return '<div class="power-unit-toggle" role="group" aria-label="Leistungseinheit">'
+      + '<button type="button" id="powerUnitPs" aria-pressed="true" onclick="setPowerUnit(\'PS\')">PS</button>'
+      + '<button type="button" id="powerUnitKw" aria-pressed="false" onclick="setPowerUnit(\'KW\')">kW</button>'
+      + '</div>';
+  }
+  window.onPowerInput = function(input){
+    var raw = input.value;
+    if (raw === '') { delete POWER_KW[input.id]; return; }
+    var kw = convertPowerToKw(Number(raw), POWER_UNIT);
+    // 0 ist beim Leistungsfilter (anders als beim Umkreis) kein sinnvoller
+    // Filter und wird wie ein leeres Feld behandelt.
+    if (kw > 0) { POWER_KW[input.id] = kw; } else { delete POWER_KW[input.id]; }
+  };
+  window.setPowerUnit = function(unit){
+    POWER_UNIT = unit;
+    document.getElementById('powerUnitPs').setAttribute('aria-pressed', unit === 'PS' ? 'true' : 'false');
+    document.getElementById('powerUnitKw').setAttribute('aria-pressed', unit === 'KW' ? 'true' : 'false');
+    POWER_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      var kw = POWER_KW[id];
+      // NUR neu formatieren, der gespeicherte kW-Wert bleibt unveraendert -
+      // sonst wuerden sich Rundungsfehler bei wiederholtem Umschalten aufsummieren.
+      el.value = kw === undefined ? '' : convertKwToPowerDisplay(kw, unit);
+      document.getElementById(id + '_unit').textContent = unit === 'PS' ? 'PS' : 'kW';
+    });
+  };
   function textField(id, label, placeholder){
     return '<div class="filter-field"><label for="' + id + '">' + label + '</label>'
       + '<input id="' + id + '" type="text" placeholder="' + placeholder + '"></div>';
@@ -781,8 +843,8 @@
       + '        <div class="filter-grid">'
       +            selectField('fKarosserie','Karosserieform', opts('Alle', KAROSSERIEFORMEN))
       +            selectField('fZustand','Zustand', opts('Alle', ZUSTAENDE))
-      +            numberField('fPS','Leistung ab', 'PS')
-      +            numberField('fPSBis','Leistung bis', 'PS')
+      +            powerField('fPS','Leistung ab')
+      +            '<div class="power-field-row">' + powerField('fPSBis','Leistung bis') + powerUnitToggle() + '</div>'
       +            selectField('fFarbe','Außenfarbe', opts('Alle', FARBEN))
       +            selectField('fSitze','Sitzplätze', opts('Egal', SITZPLAETZE))
       +            selectField('fTueren','Türen', opts('Alle', TUEREN))
@@ -864,6 +926,10 @@
     if (radiusEl) { radiusEl.value = RADIUS_DEFAULT; onRadiusInput(radiusEl); }
     var radiusWrap = document.getElementById(RADIUS_ID + '_wrap');
     if (radiusWrap) radiusWrap.hidden = true;
+    // Leistungswert(e) leeren (NUMBER_IDS oben) + Einheit zurueck auf PS
+    // (siehe Aufgabenstellung PS/kW-Umschalter, Reset).
+    POWER_KW = {};
+    setPowerUnit('PS');
     onMarkeChange(); // sperrt Modell wieder und setzt den Hinweistext zurück
     document.querySelectorAll('input[name="ausstattung"]').forEach(function(cb){ cb.checked = false; });
   };
@@ -877,8 +943,11 @@
     // Einheit an den Wert haengen, damit die Anfrage eindeutig lesbar ist.
     if (val('fPreisVon')) parts.push(FIELD_LABELS.fPreisVon + ': ' + Number(val('fPreisVon')).toLocaleString('de-DE') + ' €');
     if (val('fPreis')) parts.push(FIELD_LABELS.fPreis + ': ' + Number(val('fPreis')).toLocaleString('de-DE') + ' €');
-    if (val('fPS')) parts.push(FIELD_LABELS.fPS + ': ' + val('fPS') + ' PS');
-    if (val('fPSBis')) parts.push(FIELD_LABELS.fPSBis + ': ' + val('fPSBis') + ' PS');
+    // kW ist die interne Basiseinheit, unabhaengig von der Anzeigeeinheit -
+    // deshalb hier IMMER in kW in die Anfrage aufnehmen (nicht val(), das
+    // wuerde die aktuell angezeigte Einheit lesen).
+    if (POWER_KW.fPS) parts.push(FIELD_LABELS.fPS + ': ' + POWER_KW.fPS + ' kW');
+    if (POWER_KW.fPSBis) parts.push(FIELD_LABELS.fPSBis + ': ' + POWER_KW.fPSBis + ' kW');
     // Umkreis ist ohne einen tatsaechlich GUELTIGEN Ort wirkungslos, deshalb
     // nur dann aufgenommen (nicht schon bei jeder Texteingabe in fOrt).
     // TODO: geocoding / radius backend integration - siehe VehicleSearchFilters.radiusKm
