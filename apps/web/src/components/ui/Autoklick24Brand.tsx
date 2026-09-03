@@ -26,11 +26,11 @@ const SIZES = {
     word: "text-[1.3rem] sm:text-[1.55rem]",
     gap: "gap-2.5 sm:gap-3",
   },
-  /** Header: 60px mobil, 92px ab sm - Wortmarke 26px mobil, 42px ab sm. */
+  /** Header: 60px mobil, 102px ab sm - Wortmarke 26px mobil, 44px ab sm. */
   lg: {
-    symbol: "h-[60px] w-[60px] sm:h-[92px] sm:w-[92px]",
-    word: "text-[1.625rem] sm:text-[2.625rem]",
-    gap: "gap-3 sm:gap-4",
+    symbol: "h-[60px] w-[60px] sm:h-[102px] sm:w-[102px]",
+    word: "text-[1.625rem] sm:text-[2.75rem]",
+    gap: "gap-3 sm:gap-5",
   },
 } as const;
 
