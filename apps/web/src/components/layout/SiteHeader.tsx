@@ -27,46 +27,44 @@ export function SiteHeader() {
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
       {/*
-        Ein einziges Flex-Level für Marke + alle Navigationspunkte + Anmelden
-        + Händlerlogin (nav.primary rendert via "contents" ohne eigene Box),
-        damit justify-between EINEN gemeinsamen, gleichmäßigen Abstand für
-        wirklich alle Lücken berechnet (Logo -> erster Punkt genauso wie
-        zwischen den Punkten) statt zweier unterschiedlich großer Lücken
-        (Marke<->Nav-Block groß, Nav-intern klein). gap-[22px] ist dabei die
-        garantierte Mindestlücke; auf breiteren Screens verteilt
-        justify-between zusätzlichen Platz gleichmäßig obendrauf - genau
-        das von der Aufgabe gewünschte "responsiv an die verfügbare Breite
-        angepasste" Gap.
+        Zwei Gruppen statt einer flachen Reihe (siehe Aufgabenstellung
+        "KORREKTUR HEADER-ABSTÄNDE"): links Marke + Hauptnavigation (main-nav,
+        eng, gap-4 = 16px - die vier Punkte sollen wie EIN zusammengehöriger
+        Block wirken), rechts Anmelden/Händlerlogin (account-nav, ebenfalls
+        eng, gap-3 = 12px). Zwischen beiden Gruppen ein deutlich größerer,
+        garantierter Mindestabstand (gap-8 = 32px auf der äußeren Reihe) -
+        account-nav bekommt zusätzlich ml-auto, damit sie bei viel freiem
+        Platz an den rechten Rand wandert statt nur den Mindestabstand zu
+        behalten.
       */}
-      <div className="flex h-[90px] w-full items-center justify-between gap-3 px-5 sm:h-[132px] sm:px-6 sm:gap-[22px] lg:px-8 2xl:px-10 min-[1800px]:px-12">
-        <Autoklick24Brand size="lg" />
+      <div className="flex h-[90px] w-full items-center gap-3 px-5 sm:h-[132px] sm:gap-8 sm:px-6 lg:px-8 2xl:px-10 min-[1800px]:px-12">
+        <div className="flex items-center gap-6">
+          <Autoklick24Brand size="lg" />
 
-        <nav className="contents" aria-label="Hauptnavigation">
-          {primaryNavLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`hidden min-[1580px]:inline-flex ${NAV_PILL_CLASSES}`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+          <nav
+            className="hidden min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-4"
+            aria-label="Hauptnavigation"
+          >
+            {primaryNavLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={NAV_PILL_CLASSES}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
 
-        <Link href="/anmelden" className={`hidden min-[1580px]:inline-flex ${NAV_PILL_CLASSES}`}>
-          Anmelden
-        </Link>
-
-        <Link
-          href="/haendler/login"
-          className={`hidden min-[1580px]:inline-flex ${HAENDLERLOGIN_PILL_CLASSES}`}
-        >
-          Händlerlogin
-        </Link>
+        <div className="ml-auto hidden min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-3">
+          <Link href="/anmelden" className={NAV_PILL_CLASSES}>
+            Anmelden
+          </Link>
+          <Link href="/haendler/login" className={HAENDLERLOGIN_PILL_CLASSES}>
+            Händlerlogin
+          </Link>
+        </div>
 
         <button
           type="button"
-          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 min-[1580px]:hidden"
+          className="text-navy-700 ml-auto inline-flex items-center justify-center rounded-lg p-2 min-[1580px]:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
