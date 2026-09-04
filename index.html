@@ -71,24 +71,20 @@
   }
   /* Eigener Header-Container - bewusst NICHT .wrap (max-width 1180px),
      das ist sitebreit fuer Hero/Sections/Footer im Einsatz und darf
-     unangetastet bleiben (Aufgabe betrifft nur den Header). KEIN
-     max-width/margin:auto hier: der Header soll die volle verfuegbare
-     Breite nutzen, damit die Marke am tatsaechlichen Browserrand (nur
-     Padding) verankert bleibt statt in einer zentrierten Box zu
-     "schwimmen". Zwei Gruppen (siehe Aufgabenstellung "KORREKTUR
-     HEADER-ABSTAENDE"): links Marke + Hauptnavigation (.brand-cluster,
-     eng), rechts Anmelden/Haendlerlogin (.header-actions, ebenfalls eng,
-     via margin-left:auto an den rechten Rand geschoben). Der grosse
-     Mindestabstand zwischen beiden Gruppen kommt vom gap der aeusseren
-     .header-row selbst. */
+     unangetastet bleiben (Aufgabe betrifft nur den Header). 3-Spalten-Grid
+     (1fr auto 1fr) statt Flex (siehe Aufgabenstellung "HAUPTNAVIGATION
+     MITTIG AUSRICHTEN"): Marke in Spalte 1 (justify-self:start), die
+     "auto"-Spalte 2 ist exakt so breit wie die Hauptnavigation, dadurch
+     steht sie wirklich in der Mitte des GESAMTEN Headers (nicht nur mittig
+     im Freiraum zwischen Marke und Login), Account-Bereich in Spalte 3
+     (justify-self:end). width:calc(100% - 40/64px), max-width 1600px,
+     zentriert - nutzt fast die volle Breite, bleibt aber auf sehr breiten
+     Monitoren nicht randlos. */
   .header-row{
-    height:90px;display:flex;align-items:center;
-    gap:12px;padding:0 20px;
+    height:90px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+    gap:8px;width:calc(100% - 40px);max-width:1600px;margin:0 auto;
   }
-  @media (min-width:1024px){.header-row{padding:0 32px;}}
-  @media (min-width:1536px){.header-row{padding:0 40px;}}
-  @media (min-width:1800px){.header-row{padding:0 48px;}}
-  .brand-cluster{display:flex;align-items:center;gap:24px;}
+  .brand-cluster{grid-column:1;justify-self:start;display:flex;align-items:center;gap:24px;}
   .logo{display:flex;align-items:center;gap:12px;}
   .footer-logo{display:flex;align-items:center;gap:12px;}
   .logo-mark{width:60px;height:60px;flex-shrink:0;}
@@ -97,14 +93,14 @@
   .logo-word b{font-weight:800;color:#0B1F3F;}
   .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
   @media (min-width:640px){
-    .header-row{height:132px;gap:32px;}
+    .header-row{height:132px;gap:16px;width:calc(100% - 64px);}
     .logo{gap:16px;}
     .logo-mark{width:102px;height:102px;}
     .logo-word{font-size:2.75rem;}
   }
   /* Hauptnavigation bewusst eng (14-18px), damit die vier Punkte wie EIN
      zusammengehoeriger Block wirken statt einzeln verstreut zu stehen. */
-  nav.primary{display:none;align-items:center;gap:16px;}
+  nav.primary{grid-column:2;justify-self:center;display:none;align-items:center;gap:16px;}
   /* Dezente "Pill"-Optik (siehe Aufgabenstellung "NAVIGATION SOLL
      AUFFAELLIGER WERDEN"): sehr helle Version der Klick-Akzentfarbe aus
      dem Autoklick24-Logo (#3896F5, siehe .logo-word i oben) - bewusst
@@ -121,9 +117,8 @@
   nav.primary a:hover,
   .header-actions a.text-link:hover{background:rgba(56,150,245,.13);color:#1862E6;}
   nav.primary a.active{color:#1862E6;background:rgba(56,150,245,.13);}
-  /* Anmelden/Haendlerlogin ebenfalls eng gruppiert (12px) und per
-     margin-left:auto an den rechten Rand geschoben. */
-  .header-actions{display:none;align-items:center;gap:12px;margin-left:auto;}
+  /* Anmelden/Haendlerlogin ebenfalls eng gruppiert (12-16px). */
+  .header-actions{grid-column:3;justify-self:end;display:none;align-items:center;gap:14px;}
   .header-actions a.haendler-login{
     background:rgba(56,150,245,.16);
   }
@@ -144,7 +139,7 @@
   .btn-outline:hover{border-color:var(--brand-500);color:var(--brand-600);}
   .btn-block{width:100%;}
 
-  .burger{display:inline-flex;margin-left:auto;background:none;border:0;color:var(--navy-800);padding:8px;border-radius:8px;cursor:pointer;}
+  .burger{grid-column:3;justify-self:end;display:inline-flex;background:none;border:0;color:var(--navy-800);padding:8px;border-radius:8px;cursor:pointer;}
   .burger:hover{background:var(--bg-subtle);}
 
   #mobile-nav{display:none;border-top:1px solid var(--border);background:#fff;}
