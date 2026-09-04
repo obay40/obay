@@ -27,33 +27,33 @@ export function SiteHeader() {
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
       {/*
-        Zwei Gruppen statt einer flachen Reihe (siehe Aufgabenstellung
-        "KORREKTUR HEADER-ABSTÄNDE"): links Marke + Hauptnavigation (main-nav,
-        eng, gap-4 = 16px - die vier Punkte sollen wie EIN zusammengehöriger
-        Block wirken), rechts Anmelden/Händlerlogin (account-nav, ebenfalls
-        eng, gap-3 = 12px). Zwischen beiden Gruppen ein deutlich größerer,
-        garantierter Mindestabstand (gap-8 = 32px auf der äußeren Reihe) -
-        account-nav bekommt zusätzlich ml-auto, damit sie bei viel freiem
-        Platz an den rechten Rand wandert statt nur den Mindestabstand zu
-        behalten.
+        3-Spalten-Grid (1fr auto 1fr) statt Flex (siehe Aufgabenstellung
+        "HAUPTNAVIGATION MITTIG AUSRICHTEN"): Marke in Spalte 1
+        (justify-self-start), Hauptnavigation in Spalte 2 - die "auto"-Spalte
+        ist exakt so breit wie ihr Inhalt, dadurch steht die Navigation
+        wirklich in der Mitte des GESAMTEN Headers (nicht nur mittig im
+        Freiraum zwischen Marke und Login), Account-Bereich in Spalte 3
+        (justify-self-end). Account-Bereich und Burger teilen sich Spalte 3
+        (col-start-3) - immer nur einer der beiden ist sichtbar.
+        Eigener Container statt Container.tsx: width:calc(100%-64px),
+        max-width 1600px, zentriert - nutzt fast die volle Breite, bleibt
+        aber auf sehr breiten Monitoren nicht randlos.
       */}
-      <div className="flex h-[90px] w-full items-center gap-3 px-5 sm:h-[132px] sm:gap-8 sm:px-6 lg:px-8 2xl:px-10 min-[1800px]:px-12">
-        <div className="flex items-center gap-6">
-          <Autoklick24Brand size="lg" />
+      <div className="mx-auto grid h-[90px] w-[calc(100%-40px)] max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-2 sm:h-[132px] sm:w-[calc(100%-64px)] sm:gap-4">
+        <Autoklick24Brand size="lg" className="col-start-1 justify-self-start" />
 
-          <nav
-            className="hidden min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-4"
-            aria-label="Hauptnavigation"
-          >
-            {primaryNavLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={NAV_PILL_CLASSES}>
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+        <nav
+          className="col-start-2 hidden justify-self-center min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-4"
+          aria-label="Hauptnavigation"
+        >
+          {primaryNavLinks.map((link) => (
+            <Link key={link.href} href={link.href} className={NAV_PILL_CLASSES}>
+              {link.label}
+            </Link>
+          ))}
+        </nav>
 
-        <div className="ml-auto hidden min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-3">
+        <div className="col-start-3 hidden justify-self-end min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-3.5">
           <Link href="/anmelden" className={NAV_PILL_CLASSES}>
             Anmelden
           </Link>
@@ -64,7 +64,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-navy-700 ml-auto inline-flex items-center justify-center rounded-lg p-2 min-[1580px]:hidden"
+          className="text-navy-700 col-start-3 inline-flex items-center justify-center justify-self-end rounded-lg p-2 min-[1580px]:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
