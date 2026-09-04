@@ -6,50 +6,67 @@ import { Autoklick24Brand } from "@/components/ui/Autoklick24Brand";
 import { Container } from "@/components/ui/Container";
 import { primaryNavLinks } from "./nav-links";
 
+/**
+ * Dezente "Pill"-Optik für alle Navigationspunkte (siehe Aufgabenstellung
+ * "NAVIGATION SOLL AUFFÄLLIGER WERDEN"): sehr helle Version der
+ * Klick-Akzentfarbe aus dem Autoklick24-Logo (#3896F5, siehe
+ * Autoklick24Brand.tsx Wortmarken-Gradient #3896F5 -> #1862E6) - bewusst
+ * NICHT die allgemeine brand-500/600-Button-Farbe (#2B6FE0/#1E56B8), die
+ * Aufgabe verlangt explizit die Logo-eigene Klick-Farbe.
+ */
+const NAV_PILL_CLASSES =
+  "inline-flex items-center whitespace-nowrap rounded-xl bg-[rgba(56,150,245,0.07)] px-3 py-2 text-lg font-semibold text-navy-700 shadow-[0_2px_8px_rgba(56,150,245,0.05)] transition-colors duration-[180ms] hover:bg-[rgba(56,150,245,0.13)] hover:text-[#1862E6]";
+
+/** Etwas kräftigerer Hintergrund als die normale Pill, aber weiterhin dezent (kein CTA-Button). */
+const HAENDLERLOGIN_PILL_CLASSES =
+  "inline-flex items-center whitespace-nowrap rounded-xl bg-[rgba(56,150,245,0.16)] px-3 py-2 text-lg font-semibold text-navy-700 shadow-[0_2px_8px_rgba(56,150,245,0.05)] transition-colors duration-[180ms] hover:bg-[rgba(56,150,245,0.22)] hover:text-[#1862E6]";
+
 export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <header className="border-navy-100 sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
       {/*
-        Eigener, voller Header-Container statt des sitebreiten Container-
-        Bausteins: kein max-width, damit die Marke bei jeder Desktopbreite
-        am tatsächlichen Browserrand (nur Padding) verankert bleibt statt
-        in einer zentrierten Box zu "schwimmen" - Container.tsx bleibt für
-        den Rest der Seite unangetastet.
-        Grid (auto 1fr auto) statt flex justify-between: Brand links,
-        Navigation zentriert im mittleren Bereich, Anmelden rechts.
+        Ein einziges Flex-Level für Marke + alle Navigationspunkte + Anmelden
+        + Händlerlogin (nav.primary rendert via "contents" ohne eigene Box),
+        damit justify-between EINEN gemeinsamen, gleichmäßigen Abstand für
+        wirklich alle Lücken berechnet (Logo -> erster Punkt genauso wie
+        zwischen den Punkten) statt zweier unterschiedlich großer Lücken
+        (Marke<->Nav-Block groß, Nav-intern klein). gap-[22px] ist dabei die
+        garantierte Mindestlücke; auf breiteren Screens verteilt
+        justify-between zusätzlichen Platz gleichmäßig obendrauf - genau
+        das von der Aufgabe gewünschte "responsiv an die verfügbare Breite
+        angepasste" Gap.
       */}
-      <div className="grid h-[90px] w-full grid-cols-[auto_1fr_auto] items-center px-5 sm:h-[132px] sm:px-6 lg:px-8 2xl:px-10 min-[1800px]:px-12">
-        <Autoklick24Brand size="lg" className="col-start-1" />
+      <div className="flex h-[90px] w-full items-center justify-between gap-3 px-5 sm:h-[132px] sm:px-6 sm:gap-[22px] lg:px-8 2xl:px-10 min-[1800px]:px-12">
+        <Autoklick24Brand size="lg" />
 
-        <nav
-          className="col-start-2 hidden min-[1320px]:flex min-[1320px]:justify-self-center min-[1320px]:items-center min-[1320px]:gap-7"
-          aria-label="Hauptnavigation"
-        >
+        <nav className="contents" aria-label="Hauptnavigation">
           {primaryNavLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-lg font-medium transition-colors"
+              className={`hidden min-[1580px]:inline-flex ${NAV_PILL_CLASSES}`}
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="col-start-3 hidden min-[1320px]:flex min-[1320px]:items-center min-[1320px]:justify-self-end">
-          <Link
-            href="/anmelden"
-            className="text-navy-700 hover:text-brand-600 whitespace-nowrap text-lg font-medium transition-colors"
-          >
-            Anmelden
-          </Link>
-        </div>
+        <Link href="/anmelden" className={`hidden min-[1580px]:inline-flex ${NAV_PILL_CLASSES}`}>
+          Anmelden
+        </Link>
+
+        <Link
+          href="/haendler/login"
+          className={`hidden min-[1580px]:inline-flex ${HAENDLERLOGIN_PILL_CLASSES}`}
+        >
+          Händlerlogin
+        </Link>
 
         <button
           type="button"
-          className="text-navy-700 col-start-3 inline-flex items-center justify-center justify-self-end rounded-lg p-2 min-[1320px]:hidden"
+          className="text-navy-700 inline-flex items-center justify-center rounded-lg p-2 min-[1580px]:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
@@ -78,27 +95,34 @@ export function SiteHeader() {
       {mobileOpen && (
         <nav
           id="mobile-nav"
-          className="border-navy-100 border-t bg-white min-[1320px]:hidden"
+          className="border-navy-100 border-t bg-white min-[1580px]:hidden"
           aria-label="Mobile Navigation"
         >
-          <Container className="flex flex-col gap-1 py-3">
+          <Container className="flex flex-col gap-2 py-3">
             {primaryNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-navy-700 hover:bg-navy-50 rounded-lg px-3 py-2.5 text-sm font-medium"
+                className="text-navy-700 rounded-xl bg-[rgba(56,150,245,0.07)] px-4 py-3 text-base font-semibold"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="border-navy-100 mt-2 flex flex-col gap-2 border-t pt-3">
+            <div className="mt-1 flex flex-col gap-2">
               <Link
                 href="/anmelden"
-                className="text-navy-700 hover:bg-navy-50 rounded-lg px-3 py-2.5 text-sm font-medium"
+                className="text-navy-700 rounded-xl bg-[rgba(56,150,245,0.07)] px-4 py-3 text-base font-semibold"
                 onClick={() => setMobileOpen(false)}
               >
                 Anmelden
+              </Link>
+              <Link
+                href="/haendler/login"
+                className="text-navy-700 rounded-xl bg-[rgba(56,150,245,0.16)] px-4 py-3 text-base font-semibold"
+                onClick={() => setMobileOpen(false)}
+              >
+                Händlerlogin
               </Link>
             </div>
           </Container>
