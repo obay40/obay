@@ -1,0 +1,51 @@
+[
+  {
+    "type": "model",
+    "sourceId": "volkswagen/iltis",
+    "manufacturer": "Volkswagen",
+    "model": "Iltis",
+    "reason": "Militärnaher Geländewagen (Bundeswehr-Auftrag), aber auch in kleiner Stückzahl zivil verkauft und heute ein bekanntes Youngtimer-/Sammlerfahrzeug. Unklar, ob als normaler PKW oder als Sonderfahrzeug einzustufen - bewusst nicht geraten, bleibt bis zur manuellen Prüfung sichtbar."
+  },
+  {
+    "type": "model",
+    "sourceId": "austin-morris/mini",
+    "manufacturer": "Austin-Morris",
+    "model": "Mini",
+    "reason": "Historisch korrekter Herstellername, unter dem der klassische Mini vor der eigenständigen MINI-Marke lief. Möglicherweise aus Nutzersicht eine verwirrende Dublette zur heutigen Marke MINI, aber keine falsche Zuordnung im Sinne der Aufgabenstellung. Unklar, ob zusammenführen oder als eigene historische Marke belassen."
+  },
+  {
+    "type": "model",
+    "sourceId": "innocenti/mini",
+    "manufacturer": "Innocenti",
+    "model": "Mini",
+    "reason": "Italienischer Lizenzbauer des klassischen Mini (1965-1975). Gleiche Grauzone wie austin-morris/mini oben."
+  },
+  {
+    "type": "model",
+    "sourceId": "leyland-cars/mini",
+    "manufacturer": "Leyland Cars",
+    "model": "Mini",
+    "reason": "Weiterer historischer Konzernname (British Leyland), unter dem der klassische Mini geführt wurde. Gleiche Grauzone wie austin-morris/mini oben."
+  },
+  {
+    "type": "model",
+    "sourceId": "mcc/smart",
+    "manufacturer": "Mcc",
+    "model": "Smart",
+    "reason": "Micro Compact Car AG war der ursprüngliche (Swatch/Mercedes-Joint-Venture-)Firmenname vor der vollständigen Mercedes-Benz-Übernahme der Marke smart. Historisch korrekt, aber möglicherweise als Dublette zur heutigen Marke \"Smart\" verwirrend."
+  },
+  {
+    "type": "model",
+    "sourceId": "micro-compact-car/smart",
+    "manufacturer": "Micro Compact Car",
+    "model": "Smart",
+    "reason": "Ausgeschriebene Variante desselben ursprünglichen Firmennamens wie mcc/smart oben - gleiche Grauzone."
+  },
+  {
+    "type": "model",
+    "sourceId": "am-general/hummer",
+    "manufacturer": "Am General",
+    "model": "Hummer",
+    "reason": "AM General baute sowohl den militärischen Humvee als auch dessen zivile Variante Hummer H1, die reguär an Privatkunden verkauft wurde. Nicht eindeutig ein reines Militärfahrzeug - unklar, ob ausblenden. Der modernere GM-Hummer (H1/H2/H3) steht bereits separat unter der Marke \"Hummer\" und bleibt unangetastet sichtbar."
+  }
+]

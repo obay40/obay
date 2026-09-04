@@ -1,0 +1,35 @@
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+out/
+coverage/
+.turbo/
+
+# env
+.env
+.env*.local
+!.env.example
+
+# prisma
+packages/database/generated/
+
+# private, nicht-oeffentliche Uploads (Gewerbenachweise etc.) - siehe
+# apps/web/src/lib/dealer-verification-storage.ts
+.private-storage/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.tsbuildinfo
