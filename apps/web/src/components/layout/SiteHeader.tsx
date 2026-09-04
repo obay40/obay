@@ -43,7 +43,7 @@ export function SiteHeader() {
         <Autoklick24Brand size="lg" className="col-start-1 justify-self-start" />
 
         <nav
-          className="col-start-2 hidden justify-self-center min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-4"
+          className="col-start-2 hidden justify-self-center min-[1530px]:flex min-[1530px]:items-center min-[1530px]:gap-4"
           aria-label="Hauptnavigation"
         >
           {primaryNavLinks.map((link) => (
@@ -53,7 +53,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="col-start-3 hidden justify-self-end min-[1580px]:flex min-[1580px]:items-center min-[1580px]:gap-3.5">
+        <div className="col-start-3 hidden justify-self-end min-[1530px]:flex min-[1530px]:items-center min-[1530px]:gap-3.5">
           <Link href="/anmelden" className={NAV_PILL_CLASSES}>
             Anmelden
           </Link>
@@ -64,7 +64,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-navy-700 col-start-3 inline-flex items-center justify-center justify-self-end rounded-lg p-2 min-[1580px]:hidden"
+          className="text-navy-700 col-start-3 inline-flex items-center justify-center justify-self-end rounded-lg p-2 min-[1530px]:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
           aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
@@ -93,7 +93,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <nav
           id="mobile-nav"
-          className="border-navy-100 border-t bg-white min-[1580px]:hidden"
+          className="border-navy-100 border-t bg-white min-[1530px]:hidden"
           aria-label="Mobile Navigation"
         >
           <Container className="flex flex-col gap-2 py-3">
