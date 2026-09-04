@@ -69,17 +69,14 @@
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
   }
-  /* Eigener Header-Container - bewusst NICHT .wrap (max-width 1180px),
-     das ist sitebreit fuer Hero/Sections/Footer im Einsatz und darf
-     unangetastet bleiben (Aufgabe betrifft nur den Header). 3-Spalten-Grid
-     (1fr auto 1fr) statt Flex (siehe Aufgabenstellung "HAUPTNAVIGATION
-     MITTIG AUSRICHTEN"): Marke in Spalte 1 (justify-self:start), die
-     "auto"-Spalte 2 ist exakt so breit wie die Hauptnavigation, dadurch
-     steht sie wirklich in der Mitte des GESAMTEN Headers (nicht nur mittig
-     im Freiraum zwischen Marke und Login), Account-Bereich in Spalte 3
-     (justify-self:end). width:calc(100% - 40/64px), max-width 1600px,
-     zentriert - nutzt fast die volle Breite, bleibt aber auf sehr breiten
-     Monitoren nicht randlos. */
+  /* Desktop-Header: genau DREI getrennte Bereiche als direkte Grid-Kinder.
+     Spalte 1 .header-brand (Logo + Wortmarke), Spalte 2 nav.primary
+     (die vier Hauptpunkte), Spalte 3 .header-actions (Anmelden +
+     Haendlerlogin). Die "auto"-Spalte ist exakt so breit wie die
+     Navigation, die beiden 1fr-Spalten teilen den Rest - dadurch
+     zentriert das Grid selbst, ohne margins/transform/absolute.
+     Eigener Header-Container statt .wrap (max-width 1180px), das bleibt
+     dem restlichen Seiteninhalt vorbehalten. */
   .header-row{
     height:90px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
     gap:8px;width:calc(100% - 40px);max-width:1600px;margin:0 auto;
@@ -98,7 +95,7 @@
     .logo-mark{width:102px;height:102px;}
     .logo-word{font-size:2.75rem;}
   }
-  /* Hauptnavigation bewusst eng (14-18px), damit die vier Punkte wie EIN
+  /* Hauptnavigation intern kompakt (16px), damit die vier Punkte wie EIN
      zusammengehoeriger Block wirken statt einzeln verstreut zu stehen. */
   nav.primary{grid-column:2;justify-self:center;display:none;align-items:center;gap:16px;}
   /* Dezente "Pill"-Optik (siehe Aufgabenstellung "NAVIGATION SOLL
@@ -151,7 +148,12 @@
   #mobile-nav .mn-actions a.haendler-login{background:rgba(56,150,245,.16);}
   #mobile-nav .mn-actions a.haendler-login:hover{background:rgba(56,150,245,.22);}
 
-  @media (min-width:1530px){
+  /* Umschaltpunkt Desktop/Burger. Die drei Bereiche sind bei den
+     vorgegebenen Groessen zusammen 1477px breit (Marke 401 + Navigation
+     752 + Account 292 + 2x16 Grid-Gap); zuzueglich 64px Container-Rand
+     ist 1510px die erste ueberlappungsfreie Breite - 1520px mit etwas
+     Reserve. Darunter greift zwangslaeufig das Burger-Menue. */
+  @media (min-width:1520px){
     nav.primary{display:flex;}
     .header-actions{display:flex;}
     .burger{display:none;}
