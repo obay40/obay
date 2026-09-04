@@ -75,19 +75,20 @@
      max-width/margin:auto hier: der Header soll die volle verfuegbare
      Breite nutzen, damit die Marke am tatsaechlichen Browserrand (nur
      Padding) verankert bleibt statt in einer zentrierten Box zu
-     "schwimmen". Ein Flex-Level fuer Marke + alle Navigationspunkte +
-     Anmelden + Haendlerlogin (nav.primary ist "display:contents", hat
-     also selbst keine Box) - so berechnet justify-content:space-between
-     EINEN gemeinsamen, gleichmaessigen Abstand fuer wirklich alle Luecken
-     (Logo -> erster Punkt genauso wie zwischen den Punkten), statt vorher
-     zweier unterschiedlich grosser Luecken. */
+     "schwimmen". Zwei Gruppen (siehe Aufgabenstellung "KORREKTUR
+     HEADER-ABSTAENDE"): links Marke + Hauptnavigation (.brand-cluster,
+     eng), rechts Anmelden/Haendlerlogin (.header-actions, ebenfalls eng,
+     via margin-left:auto an den rechten Rand geschoben). Der grosse
+     Mindestabstand zwischen beiden Gruppen kommt vom gap der aeusseren
+     .header-row selbst. */
   .header-row{
-    height:90px;display:flex;align-items:center;justify-content:space-between;
+    height:90px;display:flex;align-items:center;
     gap:12px;padding:0 20px;
   }
   @media (min-width:1024px){.header-row{padding:0 32px;}}
   @media (min-width:1536px){.header-row{padding:0 40px;}}
   @media (min-width:1800px){.header-row{padding:0 48px;}}
+  .brand-cluster{display:flex;align-items:center;gap:24px;}
   .logo{display:flex;align-items:center;gap:12px;}
   .footer-logo{display:flex;align-items:center;gap:12px;}
   .logo-mark{width:60px;height:60px;flex-shrink:0;}
@@ -96,20 +97,21 @@
   .logo-word b{font-weight:800;color:#0B1F3F;}
   .logo-word i{font-style:normal;font-weight:800;background:linear-gradient(90deg,#3896F5,#1862E6);-webkit-background-clip:text;background-clip:text;color:transparent;}
   @media (min-width:640px){
-    .header-row{height:132px;}
+    .header-row{height:132px;gap:32px;}
     .logo{gap:16px;}
     .logo-mark{width:102px;height:102px;}
     .logo-word{font-size:2.75rem;}
   }
-  @media (min-width:640px){.header-row{gap:22px;}}
-  nav.primary{display:contents;}
+  /* Hauptnavigation bewusst eng (14-18px), damit die vier Punkte wie EIN
+     zusammengehoeriger Block wirken statt einzeln verstreut zu stehen. */
+  nav.primary{display:none;align-items:center;gap:16px;}
   /* Dezente "Pill"-Optik (siehe Aufgabenstellung "NAVIGATION SOLL
      AUFFAELLIGER WERDEN"): sehr helle Version der Klick-Akzentfarbe aus
      dem Autoklick24-Logo (#3896F5, siehe .logo-word i oben) - bewusst
      NICHT die allgemeine brand-500/600-Buttonfarbe. */
   nav.primary a,
   .header-actions a.text-link{
-    display:none;align-items:center;white-space:nowrap;
+    display:inline-flex;align-items:center;white-space:nowrap;
     border-radius:11px;padding:8px 12px;
     font-size:1.125rem;font-weight:600;color:var(--navy-700);
     background:rgba(56,150,245,.07);
@@ -119,7 +121,9 @@
   nav.primary a:hover,
   .header-actions a.text-link:hover{background:rgba(56,150,245,.13);color:#1862E6;}
   nav.primary a.active{color:#1862E6;background:rgba(56,150,245,.13);}
-  .header-actions{display:contents;}
+  /* Anmelden/Haendlerlogin ebenfalls eng gruppiert (12px) und per
+     margin-left:auto an den rechten Rand geschoben. */
+  .header-actions{display:none;align-items:center;gap:12px;margin-left:auto;}
   .header-actions a.haendler-login{
     background:rgba(56,150,245,.16);
   }
@@ -140,7 +144,7 @@
   .btn-outline:hover{border-color:var(--brand-500);color:var(--brand-600);}
   .btn-block{width:100%;}
 
-  .burger{display:inline-flex;background:none;border:0;color:var(--navy-800);padding:8px;border-radius:8px;cursor:pointer;}
+  .burger{display:inline-flex;margin-left:auto;background:none;border:0;color:var(--navy-800);padding:8px;border-radius:8px;cursor:pointer;}
   .burger:hover{background:var(--bg-subtle);}
 
   #mobile-nav{display:none;border-top:1px solid var(--border);background:#fff;}
@@ -153,8 +157,8 @@
   #mobile-nav .mn-actions a.haendler-login:hover{background:rgba(56,150,245,.22);}
 
   @media (min-width:1580px){
-    nav.primary a,
-    .header-actions a.text-link{display:inline-flex;}
+    nav.primary{display:flex;}
+    .header-actions{display:flex;}
     .burger{display:none;}
   }
 
@@ -406,14 +410,16 @@
 
 <header class="site">
   <div class="header-row">
-    <a href="#/" class="logo"><img src="./assets/autoklick24-symbol.png" class="logo-mark" alt="Autoklick24" width="302" height="302"><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span></span></a>
+    <div class="brand-cluster">
+      <a href="#/" class="logo"><img src="./assets/autoklick24-symbol.png" class="logo-mark" alt="Autoklick24" width="302" height="302"><span class="logo-text"><span class="logo-word"><b>Auto</b><i>klick</i><b>24</b></span></span></a>
 
-    <nav class="primary" id="primary-nav">
-      <a href="#/autos" data-route="/autos">Autos kaufen</a>
-      <a href="#/auto-verkaufen" data-route="/auto-verkaufen">Auto verkaufen</a>
-      <a href="#/auto-vermitteln" data-route="/auto-vermitteln">Auto vermitteln</a>
-      <a href="#/auto-inserieren" data-route="/auto-inserieren">Auto inserieren</a>
-    </nav>
+      <nav class="primary" id="primary-nav">
+        <a href="#/autos" data-route="/autos">Autos kaufen</a>
+        <a href="#/auto-verkaufen" data-route="/auto-verkaufen">Auto verkaufen</a>
+        <a href="#/auto-vermitteln" data-route="/auto-vermitteln">Auto vermitteln</a>
+        <a href="#/auto-inserieren" data-route="/auto-inserieren">Auto inserieren</a>
+      </nav>
+    </div>
 
     <div class="header-actions">
       <a href="#/anmelden" class="text-link" data-route="/anmelden">Anmelden</a>
