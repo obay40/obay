@@ -75,16 +75,20 @@
      max-width/margin:auto hier: der Header soll die volle verfuegbare
      Breite nutzen, damit die Marke am tatsaechlichen Browserrand (nur
      Padding) verankert bleibt statt in einer zentrierten Box zu
-     "schwimmen". Grid (auto 1fr auto) statt Flex: Brand links,
-     Navigation zentriert im mittleren Bereich, Anmelden rechts. */
+     "schwimmen". Ein Flex-Level fuer Marke + alle Navigationspunkte +
+     Anmelden + Haendlerlogin (nav.primary ist "display:contents", hat
+     also selbst keine Box) - so berechnet justify-content:space-between
+     EINEN gemeinsamen, gleichmaessigen Abstand fuer wirklich alle Luecken
+     (Logo -> erster Punkt genauso wie zwischen den Punkten), statt vorher
+     zweier unterschiedlich grosser Luecken. */
   .header-row{
-    height:90px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;
-    padding:0 20px;
+    height:90px;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:0 20px;
   }
   @media (min-width:1024px){.header-row{padding:0 32px;}}
   @media (min-width:1536px){.header-row{padding:0 40px;}}
   @media (min-width:1800px){.header-row{padding:0 48px;}}
-  .logo{display:flex;align-items:center;gap:12px;grid-column:1;}
+  .logo{display:flex;align-items:center;gap:12px;}
   .footer-logo{display:flex;align-items:center;gap:12px;}
   .logo-mark{width:60px;height:60px;flex-shrink:0;}
   .logo-text{display:flex;flex-direction:column;justify-content:center;line-height:1;}
@@ -97,13 +101,29 @@
     .logo-mark{width:102px;height:102px;}
     .logo-word{font-size:2.75rem;}
   }
-  nav.primary{display:none;align-items:center;gap:28px;grid-column:2;justify-self:center;}
-  nav.primary a{font-size:1.125rem;font-weight:500;color:var(--navy-700);padding:6px 0;border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
-  nav.primary a:hover{color:var(--brand-600);}
-  nav.primary a.active{color:var(--brand-600);border-color:var(--brand-500);}
-  .header-actions{display:none;align-items:center;gap:12px;white-space:nowrap;grid-column:3;justify-self:end;}
-  .header-actions a.text-link{font-size:1.125rem;font-weight:500;color:var(--navy-700);}
-  .header-actions a.text-link:hover{color:var(--brand-600);}
+  @media (min-width:640px){.header-row{gap:22px;}}
+  nav.primary{display:contents;}
+  /* Dezente "Pill"-Optik (siehe Aufgabenstellung "NAVIGATION SOLL
+     AUFFAELLIGER WERDEN"): sehr helle Version der Klick-Akzentfarbe aus
+     dem Autoklick24-Logo (#3896F5, siehe .logo-word i oben) - bewusst
+     NICHT die allgemeine brand-500/600-Buttonfarbe. */
+  nav.primary a,
+  .header-actions a.text-link{
+    display:none;align-items:center;white-space:nowrap;
+    border-radius:11px;padding:8px 12px;
+    font-size:1.125rem;font-weight:600;color:var(--navy-700);
+    background:rgba(56,150,245,.07);
+    box-shadow:0 2px 8px rgba(56,150,245,.05);
+    transition:background .18s,color .18s;
+  }
+  nav.primary a:hover,
+  .header-actions a.text-link:hover{background:rgba(56,150,245,.13);color:#1862E6;}
+  nav.primary a.active{color:#1862E6;background:rgba(56,150,245,.13);}
+  .header-actions{display:contents;}
+  .header-actions a.haendler-login{
+    background:rgba(56,150,245,.16);
+  }
+  .header-actions a.haendler-login:hover{background:rgba(56,150,245,.22);color:#1862E6;}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:6px;
     border-radius:999px;font-weight:600;font-size:.88rem;
@@ -120,19 +140,21 @@
   .btn-outline:hover{border-color:var(--brand-500);color:var(--brand-600);}
   .btn-block{width:100%;}
 
-  .burger{display:inline-flex;background:none;border:0;color:var(--navy-800);padding:8px;border-radius:8px;cursor:pointer;grid-column:3;justify-self:end;}
+  .burger{display:inline-flex;background:none;border:0;color:var(--navy-800);padding:8px;border-radius:8px;cursor:pointer;}
   .burger:hover{background:var(--bg-subtle);}
 
   #mobile-nav{display:none;border-top:1px solid var(--border);background:#fff;}
   #mobile-nav.open{display:block;}
-  #mobile-nav .wrap{padding:12px 24px 18px;display:flex;flex-direction:column;gap:2px;}
-  #mobile-nav a{padding:10px 8px;border-radius:8px;font-size:.92rem;font-weight:500;color:var(--navy-700);}
-  #mobile-nav a:hover{background:var(--bg-subtle);}
-  #mobile-nav .mn-actions{margin-top:8px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+  #mobile-nav .wrap{padding:12px 24px 18px;display:flex;flex-direction:column;gap:8px;}
+  #mobile-nav a{padding:12px 14px;border-radius:11px;font-size:1rem;font-weight:600;color:var(--navy-700);background:rgba(56,150,245,.07);}
+  #mobile-nav a:hover{background:rgba(56,150,245,.13);}
+  #mobile-nav .mn-actions{margin-top:6px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+  #mobile-nav .mn-actions a.haendler-login{background:rgba(56,150,245,.16);}
+  #mobile-nav .mn-actions a.haendler-login:hover{background:rgba(56,150,245,.22);}
 
-  @media (min-width:1320px){
-    nav.primary{display:flex;}
-    .header-actions{display:flex;}
+  @media (min-width:1580px){
+    nav.primary a,
+    .header-actions a.text-link{display:inline-flex;}
     .burger{display:none;}
   }
 
@@ -391,11 +413,11 @@
       <a href="#/auto-verkaufen" data-route="/auto-verkaufen">Auto verkaufen</a>
       <a href="#/auto-vermitteln" data-route="/auto-vermitteln">Auto vermitteln</a>
       <a href="#/auto-inserieren" data-route="/auto-inserieren">Auto inserieren</a>
-      <a href="#/haendler-login" data-route="/haendler-login">Händlerlogin</a>
     </nav>
 
     <div class="header-actions">
       <a href="#/anmelden" class="text-link" data-route="/anmelden">Anmelden</a>
+      <a href="#/haendler-login" class="text-link haendler-login" data-route="/haendler-login">Händlerlogin</a>
     </div>
 
     <button class="burger" id="burger-btn" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-nav">
@@ -409,9 +431,9 @@
       <a href="#/auto-verkaufen" data-route="/auto-verkaufen">Auto verkaufen</a>
       <a href="#/auto-vermitteln" data-route="/auto-vermitteln">Auto vermitteln</a>
       <a href="#/auto-inserieren" data-route="/auto-inserieren">Auto inserieren</a>
-      <a href="#/haendler-login" data-route="/haendler-login">Händlerlogin</a>
       <div class="mn-actions">
         <a href="#/anmelden" data-route="/anmelden">Anmelden</a>
+        <a href="#/haendler-login" class="haendler-login" data-route="/haendler-login">Händlerlogin</a>
       </div>
     </div>
   </nav>
