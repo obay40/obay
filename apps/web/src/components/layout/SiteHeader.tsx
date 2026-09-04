@@ -53,7 +53,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="col-start-3 hidden justify-self-end min-[1530px]:flex min-[1530px]:items-center min-[1530px]:gap-3.5">
+        <div className="col-start-3 hidden justify-self-end min-[1530px]:flex min-[1530px]:items-center min-[1530px]:gap-3">
           <Link href="/anmelden" className={NAV_PILL_CLASSES}>
             Anmelden
           </Link>
