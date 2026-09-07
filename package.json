@@ -1,0 +1,43 @@
+{
+  "name": "autoklick24",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Autoklick24 – Fahrzeugplattform (Direktankauf, Vermittlung, Marktplatz, Händlerbörse)",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "turbo run build",
+    "build:web": "node scripts/build-web.mjs",
+    "app:sync": "pnpm build:web && npx cap sync",
+    "app:icons": "node scripts/generate-app-icons.mjs",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @autoklick24/database generate",
+    "db:migrate": "pnpm --filter @autoklick24/database migrate",
+    "db:seed": "pnpm --filter @autoklick24/database seed",
+    "db:studio": "pnpm --filter @autoklick24/database studio",
+    "vehicle-catalog:import": "pnpm --filter @autoklick24/database vehicle-catalog:import",
+    "mobile-de-catalog:import": "pnpm --filter @autoklick24/database mobile-de-catalog:import"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1"
+  }
+}

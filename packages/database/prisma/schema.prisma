@@ -1,0 +1,431 @@
+// Autoklick24 – Prisma Schema (Phase 1: Fundament)
+//
+// Phase 1 enthält bewusst nur User/Profile/Address/Dealer/DealerEmployee.
+// Die weiteren Modelle aus der Architektur (Vehicle, Listing, PurchaseRequest,
+// MediationRequest, Conversation, Lead, ...) folgen in den jeweiligen Phasen
+// (siehe docs/ARCHITECTURE.md), um nicht "alles auf einmal" zu bauen.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Rollen & Benutzer
+// ---------------------------------------------------------------------------
+
+enum Role {
+  CUSTOMER
+  DEALER
+  DEALER_EMPLOYEE
+  STAFF
+  ADMIN
+  SUPER_ADMIN
+
+  // GUEST wird bewusst NICHT als DB-Wert geführt: ein nicht eingeloggter
+  // Besucher hat keinen User-Datensatz. GUEST existiert nur als Rollenwert
+  // in packages/types für Berechtigungsprüfungen im Code.
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  isActive     Boolean  @default(true)
+  emailVerifiedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile          Profile?
+  addresses        Address[]
+  dealerEmployment DealerEmployee?
+  ownedDealer      Dealer?         @relation("DealerOwner")
+
+  @@index([role])
+  @@map("users")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  phone     String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+enum AddressType {
+  PRIVATE
+  BUSINESS
+  PICKUP
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       AddressType @default(PRIVATE)
+  street     String
+  houseNumber String
+  postalCode String
+  city       String
+  country    String      @default("DE")
+  isDefault  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  dealers Dealer[]
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ---------------------------------------------------------------------------
+// Händler
+// ---------------------------------------------------------------------------
+
+enum DealerStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  // Antrag geprüft, aber unvollständig/unklar - Händler muss nachbessern
+  // (z. B. Gewerbenachweis unleserlich oder Firmendaten unstimmig), siehe
+  // Aufgabenstellung Händlerverifizierung Abschnitt "STATUSMODELL".
+  NEEDS_MORE_INFORMATION
+  SUSPENDED
+}
+
+model Dealer {
+  id                       String       @id @default(cuid())
+  ownerUserId              String       @unique
+  owner                    User         @relation("DealerOwner", fields: [ownerUserId], references: [id])
+  companyName              String
+  legalForm                String?
+  // Ansprechpartner - getrennt vom (ggf. abweichenden) Kunden-Account des
+  // Inhabers, siehe Aufgabenstellung "Ansprechpartner".
+  contactFirstName         String
+  contactLastName          String
+  contactEmail             String
+  contactPhone             String
+  website                  String?
+  vatId                    String?
+  commercialRegisterNumber String?
+  description              String?
+  logoUrl                  String?
+  status                   DealerStatus @default(PENDING)
+
+  // Nachvollziehbarkeit des Prüf-Workflows (siehe Aufgabenstellung
+  // "PENDING_VERIFICATION" -> Prüfung -> Freigabe/Rückfrage). verifiedBy
+  // speichert bewusst nur die User-ID (kein FK) - analog zu AuditLog.userId,
+  // damit ein gelöschter Staff-Account die Historie nicht zerstört.
+  verificationSubmittedAt DateTime?
+  verifiedAt              DateTime?
+  verifiedBy              String?
+  rejectionReason         String?
+
+  addressId String?
+  address   Address? @relation(fields: [addressId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees             DealerEmployee[]
+  verificationDocuments DealerVerificationDocument[]
+
+  @@index([status])
+  @@map("dealers")
+}
+
+enum DealerVerificationDocumentType {
+  TRADE_LICENSE
+  COMMERCIAL_REGISTER_EXTRACT
+  OTHER
+}
+
+/**
+ * Gewerbenachweis & Co. NIEMALS über eine öffentliche URL ausliefern (siehe
+ * Aufgabenstellung Abschnitt "GEWERBESCHEIN SICHER SPEICHERN"): storageKey
+ * ist nur ein Schlüssel für den privaten StorageProvider
+ * (@autoklick24/providers), keine abrufbare Adresse. Zugriff ausschließlich
+ * über einen serverseitigen, rollenbeschränkten Endpunkt (ADMIN/STAFF oder
+ * der Händler selbst für den eigenen Upload).
+ */
+model DealerVerificationDocument {
+  id       String @id @default(cuid())
+  dealerId String
+  dealer   Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+
+  documentType DealerVerificationDocumentType @default(TRADE_LICENSE)
+  // Zufälliger Storage-Key (siehe StorageProvider.getSignedUploadUrl) -
+  // NICHT der Originaldateiname, um keine personenbezogenen Daten in Pfaden
+  // zu tragen (z. B. "gewerbeschein-max-mustermann.pdf").
+  storageKey       String
+  originalFileName String
+  mimeType         String
+  fileSize         Int
+
+  uploadedAt DateTime  @default(now())
+  reviewedAt DateTime?
+  reviewedBy String?
+
+  @@index([dealerId])
+  @@map("dealer_verification_documents")
+}
+
+enum DealerEmployeeRole {
+  OWNER
+  MANAGER
+  SALES
+  EMPLOYEE
+}
+
+model DealerEmployee {
+  id       String             @id @default(cuid())
+  dealerId String
+  dealer   Dealer             @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  userId   String             @unique
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     DealerEmployeeRole @default(EMPLOYEE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealerId])
+  @@map("dealer_employees")
+}
+
+// ---------------------------------------------------------------------------
+// Audit Log (Grundlage – Details werden ab dem Admin-Bereich, Phase 8, aktiv genutzt)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Fahrzeugkatalog (Hersteller/Modelle)
+//
+// Ersetzt den früheren hart codierten VEHICLE_MAKES-Katalog aus
+// packages/types. Wird per packages/database/scripts/import-vehicle-catalog.ts
+// aus einem vendorten VehiclesDB-Snapshot befüllt (siehe
+// docs/vehicle-data-sources.md) – die Website fragt zur Laufzeit NIE die
+// externe Quelle ab, sondern immer nur diese Tabellen.
+//
+// isActive bedeutet "innerhalb von Autoklick24 nutzbar", NICHT "wird aktuell
+// produziert" – historische Modelle (Gebrauchtwagenmarkt!) bleiben aktiv.
+// sourceActive ist getrennt davon: false bedeutet nur "beim letzten Import
+// nicht mehr in der Quelle gefunden", der Datensatz wird dabei NIE hart
+// gelöscht (Referenzintegrität für bereits verknüpfte Inserate).
+// ---------------------------------------------------------------------------
+
+enum VehicleCatalogSource {
+  VEHICLES_DB
+  // Marken/Modelle aus der mobile.de-Gebrauchtwagen-Sitemap + dem offiziellen
+  // services.mobile.de Car-Changelog, siehe
+  // packages/database/vendor/mobile-de/ und docs/vehicle-data-sources.md.
+  // Seit dem Quellenwechsel die aktive Standardquelle der PKW-Suche;
+  // VEHICLES_DB-Datensätze bleiben in der Datenbank erhalten (nicht
+  // gelöscht), sind aber nicht mehr Teil der kuratierten Standardsicht.
+  MOBILE_DE
+  MANUAL
+  EXTERNAL_PROVIDER
+}
+
+// Fahrzeugkategorie – Grundlage der PKW-Kuratierung (siehe
+// packages/database/src/vehicle-catalog/overrides.ts). Nur PASSENGER_CAR
+// (und bei Mischherstellern MULTI_CATEGORY, dort entscheidet dann die
+// Modell-Kategorie einzeln) erscheint standardmäßig in der
+// Autoklick24-PKW-Suche.
+enum VehicleCategory {
+  PASSENGER_CAR
+  MOTORCYCLE
+  COMMERCIAL_VEHICLE
+  MOTORHOME
+  TRUCK
+  BUS
+  TRAILER
+  AGRICULTURAL
+  SPECIAL_VEHICLE
+  OTHER
+  MULTI_CATEGORY
+}
+
+// Nachvollziehbarkeit, WARUM ein Datensatz sichtbar/verborgen ist (siehe
+// Aufgabenstellung "CONFIDENCE / REVIEW STATUS"). AUTO_* wird vom Importer
+// gesetzt, MANUAL_* von einem kuratierten Override, REVIEW_REQUIRED markiert
+// echte Grauzonen (siehe curation-review.json) - bewusst NICHT geraten.
+enum VehicleCurationStatus {
+  AUTO_APPROVED
+  AUTO_EXCLUDED
+  MANUAL_APPROVED
+  MANUAL_EXCLUDED
+  REVIEW_REQUIRED
+}
+
+model VehicleManufacturer {
+  id            String               @id @default(cuid())
+  // Nicht global @unique: seit dem mobile.de-Quellenwechsel können
+  // dieselben Slugs (z. B. "bmw") gleichzeitig unter VEHICLES_DB (inaktive
+  // Altquelle, bleibt erhalten) und MOBILE_DE (aktive Quelle) existieren.
+  // Eindeutig je Quelle (siehe @@unique([source, slug]) unten); die
+  // kuratierten Lesefunktionen (queries.ts) filtern immer zusätzlich nach
+  // source, sodass Anwender nie eine Kollision sehen.
+  slug          String
+  name          String
+  displayName   String?
+  country       String?
+  isActive      Boolean              @default(true)
+  isPopular     Boolean              @default(false)
+  category      VehicleCategory      @default(PASSENGER_CAR)
+  source        VehicleCatalogSource @default(VEHICLES_DB)
+  sourceId      String?
+  sourceVersion String?
+  sourceActive  Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  aliases     VehicleManufacturerAlias[]
+  models      VehicleModel[]
+  modelGroups VehicleModelGroup[]
+
+  @@unique([source, sourceId])
+  @@unique([source, slug])
+  @@index([isActive])
+  @@index([isPopular])
+  @@index([category])
+  @@map("vehicle_manufacturers")
+}
+
+model VehicleManufacturerAlias {
+  id              String              @id @default(cuid())
+  manufacturerId  String
+  manufacturer    VehicleManufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime            @default(now())
+
+  @@unique([manufacturerId, alias])
+  @@index([normalizedAlias])
+  @@map("vehicle_manufacturer_aliases")
+}
+
+/**
+ * Modellgruppe/Baureihe zwischen Hersteller und Modell (z. B. BMW "3er
+ * Reihe", Mercedes-Benz "C-Klasse"). Optional: die meisten Hersteller haben
+ * (noch) keine Gruppen, ihre Modelle bleiben direkt unter dem Hersteller
+ * (VehicleModel.groupId = null). Aktuell nur für BMW/Mercedes-Benz befüllt
+ * (siehe mobile-de-model-groups.ts), die Struktur ist aber bewusst nicht auf
+ * diese zwei Marken beschränkt - jeder Hersteller kann künftig Gruppen
+ * bekommen, ohne Schemaänderung.
+ */
+model VehicleModelGroup {
+  id             String               @id @default(cuid())
+  manufacturerId String
+  manufacturer   VehicleManufacturer  @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  slug           String
+  // Rohname aus der Quelle (z. B. "3er Reihe"); displayName ("3er Reihe
+  // (alle)") ist der UI-Anzeigename für die Gruppen-Option "alle Modelle
+  // dieser Baureihe" - siehe Aufgabenstellung Abschnitt 53.
+  name           String
+  displayName    String?
+  isActive       Boolean              @default(true)
+  isPopular      Boolean              @default(false)
+  source         VehicleCatalogSource @default(MOBILE_DE)
+  sourceId       String?
+  sourceVersion  String?
+  sourceActive   Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  models VehicleModel[]
+
+  @@unique([source, sourceId])
+  @@unique([manufacturerId, slug])
+  @@index([manufacturerId, isActive])
+  @@map("vehicle_model_groups")
+}
+
+model VehicleModel {
+  id              String                @id @default(cuid())
+  manufacturerId  String
+  manufacturer    VehicleManufacturer   @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  // Optional: Zugehörigkeit zu einer Modellgruppe/Baureihe (siehe
+  // VehicleModelGroup oben). null = Hersteller ohne Gruppen-Hierarchie oder
+  // Modell steht bewusst außerhalb jeder Gruppe (z. B. Mercedes-Benz
+  // Sprinter/Vito - Nutzfahrzeuge, keine PKW-Klasse).
+  groupId         String?
+  group           VehicleModelGroup?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  slug            String
+  name            String
+  displayName     String?
+  isActive        Boolean               @default(true)
+  isPopular       Boolean               @default(false)
+  // "veraltet, wird aber weiterhin gebraucht gehandelt" - NICHT löschen,
+  // nur in der UI in einen eigenen "Weitere/historische Modelle"-Abschnitt
+  // einsortieren (siehe Aufgabenstellung Abschnitt 13/14).
+  isHistoric      Boolean               @default(false)
+  productionStart Int?
+  productionEnd   Int?
+  bodyTypes       String[]              @default([])
+  vehicleCategory VehicleCategory       @default(PASSENGER_CAR)
+  // Abgeleitet aus vehicleCategory + manufacturer.category, aber als
+  // eigenes Feld gespeichert (nicht zur Query-Zeit berechnet): eine
+  // Fahrzeugbörse muss ohne teure Joins/Berechnungen filtern können, und
+  // Overrides können ein einzelnes Modell unabhängig von seiner Kategorie
+  // ein-/ausblenden (z. B. ein PASSENGER_CAR-Modell, das dennoch aus einem
+  // anderen Grund nicht gezeigt werden soll).
+  isVisibleInPassengerCarSearch Boolean @default(true)
+  curationStatus  VehicleCurationStatus @default(AUTO_APPROVED)
+  source          VehicleCatalogSource  @default(VEHICLES_DB)
+  sourceId        String?
+  sourceVersion   String?
+  sourceActive    Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  aliases VehicleModelAlias[]
+
+  @@unique([manufacturerId, slug])
+  @@unique([source, sourceId])
+  @@index([manufacturerId, isActive])
+  @@index([manufacturerId, isVisibleInPassengerCarSearch])
+  @@index([vehicleCategory])
+  @@index([groupId])
+  @@map("vehicle_models")
+}
+
+model VehicleModelAlias {
+  id              String       @id @default(cuid())
+  modelId         String
+  model           VehicleModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime     @default(now())
+
+  @@unique([modelId, alias])
+  @@index([normalizedAlias])
+  @@map("vehicle_model_aliases")
+}

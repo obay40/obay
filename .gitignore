@@ -1,0 +1,61 @@
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+out/
+coverage/
+.turbo/
+
+# env
+.env
+.env*.local
+!.env.example
+
+# prisma
+packages/database/generated/
+
+# private, nicht-oeffentliche Uploads (Gewerbenachweise etc.) - siehe
+# apps/web/src/lib/dealer-verification-storage.ts
+.private-storage/
+
+# Capacitor / native Projekte
+# android/ und ios/ selbst werden versioniert - nur generierte Build- und
+# IDE-Dateien bleiben draussen.
+android/.gradle/
+android/.idea/
+android/local.properties
+# Release-Signierung: Keystore und Passwoerter gehoeren NIE ins Repository.
+android/keystore.properties
+*.jks
+*.keystore
+android/app/build/
+android/build/
+android/captures/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/DerivedData/
+*.xcuserstate
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.tsbuildinfo

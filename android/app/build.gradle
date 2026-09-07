@@ -1,0 +1,123 @@
+apply plugin: 'com.android.application'
+
+// ---------------------------------------------------------------------------
+// Release-Signierung
+//
+// Die Zugangsdaten kommen NIE aus dem Repository, sondern aus einer der beiden
+// Quellen (in dieser Reihenfolge):
+//
+//   1. android/keystore.properties  (lokal, per .gitignore ausgeschlossen)
+//        storeFile=/absoluter/pfad/autoklick24-upload.jks
+//        storePassword=...
+//        keyAlias=autoklick24-upload
+//        keyPassword=...
+//
+//   2. Umgebungsvariablen (fuer CI):
+//        AK24_KEYSTORE_FILE, AK24_KEYSTORE_PASSWORD,
+//        AK24_KEY_ALIAS, AK24_KEY_PASSWORD
+//
+// Fehlen beide, wird der Release-Build UNSIGNIERT erzeugt. Das ist Absicht:
+// so laesst sich die Release-Konfiguration auch ohne Keystore verifizieren.
+// Eine unsignierte Datei kann weder installiert noch bei Google Play
+// hochgeladen werden - siehe GOOGLE_PLAY_INTERNAL_TESTING.md.
+// ---------------------------------------------------------------------------
+def keystorePropsFile = rootProject.file("keystore.properties")
+def signing = [:]
+
+if (keystorePropsFile.exists()) {
+    def props = new Properties()
+    keystorePropsFile.withInputStream { props.load(it) }
+    signing = [
+        storeFile    : props.getProperty("storeFile"),
+        storePassword: props.getProperty("storePassword"),
+        keyAlias     : props.getProperty("keyAlias"),
+        keyPassword  : props.getProperty("keyPassword"),
+    ]
+} else if (System.getenv("AK24_KEYSTORE_FILE")) {
+    signing = [
+        storeFile    : System.getenv("AK24_KEYSTORE_FILE"),
+        storePassword: System.getenv("AK24_KEYSTORE_PASSWORD"),
+        keyAlias     : System.getenv("AK24_KEY_ALIAS"),
+        keyPassword  : System.getenv("AK24_KEY_PASSWORD"),
+    ]
+}
+
+def hasSigning = signing.storeFile != null && file(signing.storeFile).exists()
+if (!hasSigning) {
+    logger.lifecycle("Autoklick24: kein Release-Keystore gefunden - Release-Build wird UNSIGNIERT erzeugt.")
+}
+
+android {
+    namespace = "de.autoklick24.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "de.autoklick24.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // Erste interne Testversion. Bei JEDEM weiteren Play-Upload muss
+        // versionCode erhoeht werden, sonst lehnt Google Play ihn ab.
+        versionCode 1
+        versionName "0.1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (hasSigning) {
+            release {
+                storeFile file(signing.storeFile)
+                storePassword signing.storePassword
+                keyAlias signing.keyAlias
+                keyPassword signing.keyPassword
+                // Alle drei Schemata: v1 (JAR) fuer aeltere Geraete und
+                // strenge Paket-Installer, v2/v3 fuer aktuelle Android-
+                // Versionen. Nur-v2 wird von manchen Installern abgelehnt.
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
