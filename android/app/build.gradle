@@ -72,6 +72,12 @@ android {
                 storePassword signing.storePassword
                 keyAlias signing.keyAlias
                 keyPassword signing.keyPassword
+                // Alle drei Schemata: v1 (JAR) fuer aeltere Geraete und
+                // strenge Paket-Installer, v2/v3 fuer aktuelle Android-
+                // Versionen. Nur-v2 wird von manchen Installern abgelehnt.
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
             }
         }
     }
