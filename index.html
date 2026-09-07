@@ -2,7 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- viewport-fit=cover: noetig, damit env(safe-area-inset-*) auf Geraeten mit
+     Notch/Dynamic Island ueberhaupt Werte liefert. Im Browser ohne Notch sind
+     alle Insets 0 - die Webansicht aendert sich dadurch nicht. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Autoklick24 – Auto verkaufen. Klick. Fertig.</title>
 <meta name="description" content="Autoklick24: Fahrzeug direkt verkaufen, vermitteln lassen oder selbst inserieren. Ein Fahrzeug, drei Verkaufswege.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImFrYyIgeDE9IjAlIiB5MT0iMTAwJSIgeDI9IjEwMCUiIHkyPSIwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzVDRDNFOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFFNTZCOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiByeD0iMjIiIGZpbGw9IiMwQTE2MjYiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMy41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMiA0NCBRMjIgMzAgMzQgMzAgSDY2IFE3OCAzMCA3OCA0NCBWNjAgUTc4IDY2IDcyIDY2IEgyOCBRMjIgNjYgMjIgNjAgWiIvPjxwYXRoIGQ9Ik0zMCAzOCBINzAiIHN0cm9rZS13aWR0aD0iMi41IiBvcGFjaXR5PSIuNyIvPjxyZWN0IHg9IjI2IiB5PSI0NSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjkiIHJ4PSIzIi8+PHJlY3QgeD0iNjAiIHk9IjQ1IiB3aWR0aD0iMTQiIGhlaWdodD0iOSIgcng9IjMiLz48cGF0aCBkPSJNNDQgNTIgSDU2IiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNNDMgNTggSDU3IiBzdHJva2Utd2lkdGg9IjMiLz48L2c+PGcgc3Ryb2tlPSIjMkZBRTdBIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTE2IDYyIEwyMyA2MCIvPjxwYXRoIGQ9Ik0xOCA3MCBMMjUgNjYuNSIvPjxwYXRoIGQ9Ik0yMyA3NyBMMjggNzIiLz48L2c+PHBhdGggZD0iTTMzIDU1IEwzMyA4MiBMNDAuNSA3NS41IEw0NS41IDg2IEw1MS41IDgzIEw0Ni41IDcyLjUgTDU2IDcyLjUgWiIgZmlsbD0idXJsKCNha2MpIiBzdHJva2U9IiMwQTE2MjYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+">
@@ -68,6 +71,11 @@
     background:rgba(255,255,255,.92);
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--border);
+    /* Safe Area (iPhone Notch/Dynamic Island, Querformat-Seitenraender).
+       Im Browser ohne Notch sind alle Werte 0 - das Layout bleibt identisch. */
+    padding-top:env(safe-area-inset-top);
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
   }
   /* Desktop-Header: genau DREI getrennte Bereiche als direkte Grid-Kinder.
      Spalte 1 .header-brand (Logo + Wortmarke), Spalte 2 nav.primary
@@ -366,7 +374,14 @@
   .switch-line a{color:var(--brand-600);font-weight:600;}
 
   /* ---------- Footer ---------- */
-  footer.site{background:var(--navy-950);color:#B9C6DA;}
+  /* Unterer Rand: iPhone-Home-Indicator bzw. Android-Navigationsleiste.
+     Ohne Safe Area (Desktop/Browser) ist der Wert 0. */
+  footer.site{
+    background:var(--navy-950);color:#B9C6DA;
+    padding-bottom:env(safe-area-inset-bottom);
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
   .footer-grid{padding:56px 0 0;display:grid;grid-template-columns:repeat(5,1fr);gap:28px;}
   @media (max-width:900px){.footer-grid{grid-template-columns:repeat(3,1fr);}}
   @media (max-width:600px){.footer-grid{grid-template-columns:repeat(2,1fr);}}
@@ -502,6 +517,30 @@
   // ════════════════════════════════════════════════════════════════
   window.AUTOKLICK24_WHATSAPP = "491700000000"; // internationales Format ohne "+", z. B. 491701234567
   window.AUTOKLICK24_EMAIL = "info@autoklick24.de";
+
+  // ════════════════════════════════════════════════════════════════
+  //  Backend-API – EINE zentrale Adresse für Web, Android und iOS
+  // ════════════════════════════════════════════════════════════════
+  // Bewusst null: es gibt noch kein Backend. Sobald die Autoklick24-API
+  // steht, hier genau EINMAL eintragen – nicht in einzelnen Funktionen.
+  // GitHub Pages ist nur Frontend-Hosting und wird NICHT das Backend
+  // (keine Auth, keine Uploads, keine Händlerdokumente dort).
+  // Keine Secrets/API-Keys in dieser Datei – die gehören ins Backend.
+  window.AUTOKLICK24_API_BASE_URL = null;
+
+  // Läuft die Oberfläche nativ (Capacitor) oder im Browser? Capacitor stellt
+  // window.Capacitor nur im nativen WebView bereit; im Web bleibt das
+  // undefined und die Prüfung ergibt false. Kein User-Agent-Sniffing.
+  window.AUTOKLICK24_IS_NATIVE_APP = !!(
+    window.Capacitor && typeof window.Capacitor.isNativePlatform === "function"
+      ? window.Capacitor.isNativePlatform()
+      : false
+  );
+  // Hook für spätere app-spezifische Abweichungen (z. B. Kamera-Button beim
+  // Inserieren statt Datei-Upload). Aktuell nur gesetzt, nicht verwendet.
+  if (window.AUTOKLICK24_IS_NATIVE_APP) {
+    document.documentElement.classList.add("is-native-app");
+  }
 </script>
 
 <script>
