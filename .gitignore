@@ -25,6 +25,10 @@ packages/database/generated/
 android/.gradle/
 android/.idea/
 android/local.properties
+# Release-Signierung: Keystore und Passwoerter gehoeren NIE ins Repository.
+android/keystore.properties
+*.jks
+*.keystore
 android/app/build/
 android/build/
 android/captures/
